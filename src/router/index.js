@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 // 1. Ganti HomeView dengan HomePage dan arahkan ke path yang benar
-import HomePage from '../components/pages/HomePage.vue' 
+import HomePage from '../components/pages/HomePage.vue'
+import WebLogin from '../components/auth/WebLogin.vue' 
+import WebSignup from '../components/auth/WebSignup.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,6 +18,16 @@ const router = createRouter({
     //   name: 'about',
     //   component: () => import('../views/AboutView.vue'),
     // },
+    {
+      path: '/login',
+      name: 'login',
+      component: WebLogin,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: WebSignup,
+    },
   ],
 })
 
