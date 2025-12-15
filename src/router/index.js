@@ -22,11 +22,13 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: WebLogin,
+      meta: {layout: 'auth'},
     },
     {
       path: '/register',
       name: 'register',
       component: WebSignup,
+      meta: {layout: 'auth'},
     },
   ],
 })

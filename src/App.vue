@@ -1,8 +1,11 @@
 <template>
   <div>
-    <HeaderComponent />
+    <!-- Header & Footer hanya muncul jika BUKAN halaman auth -->
+    <HeaderComponent v-if="!isAuthPage" />
+    
     <router-view />
-    <FooterComponent />
+    
+    <FooterComponent v-if="!isAuthPage" />
   </div>
 </template>
 
@@ -16,9 +19,14 @@ export default {
     HeaderComponent,
     FooterComponent,
   },
+  computed: {
+    isAuthPage() {
+      // Cek apakah halaman saat ini adalah halaman auth
+      const authRoutes = ['/login', '/register', '/signup'];
+      return authRoutes.includes(this.$route.path);
+    }
+  }
 };
 </script>
 
-<style>
-/* Tidak ada yang perlu diubah di sini */
-</style>
+<style></style>

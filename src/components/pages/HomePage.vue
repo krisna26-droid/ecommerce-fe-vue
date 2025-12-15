@@ -24,8 +24,7 @@
         <div class="product-grid">
           <div v-for="product in popularProducts" :key="product.id" class="product-card">
             <div class="product-image-wrapper">
-              <!-- <img :src="getProductImage(product.image)" :alt="product.name" class="product-img"> -->
-               <img src="@/assets/images/hero/product1.png" alt="Product 1" class="product-img"></img>
+              <img :src="getProductImage(product.image)" :alt="product.name" class="product-img">
             </div>
             <p class="product-price">{{ formatPrice(product.price) }}</p>
             <p class="product-description">{{ product.name }}</p>
