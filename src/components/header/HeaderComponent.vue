@@ -189,6 +189,33 @@ export default {
 
 <style scoped>
 /* Override CSS conflicts dan perbaiki dropdown display */
+.btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-login {
+  color: #0d9488;
+  border: 1px solid #0d9488;
+}
+
+.btn-login:hover {
+  background-color: #f0fdfa;
+}
+
+.btn-signup {
+  background-color: #0d9488;
+  color: #ffffff;
+}
+
+.btn-signup:hover {
+  background-color: #0f766e;
+}
+
 .user-dropdown {
   position: relative;
 }

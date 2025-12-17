@@ -26,7 +26,7 @@
         <div class="product-grid">
           <div v-for="product in popularProducts" :key="product.id" class="product-card">
             <div class="product-image-wrapper">
-              <img :src="getProductImage(product.image)" :alt="product.name" class="product-img">
+              <img :src="product.image" :alt="product.name" class="product-img">
             </div>
             <p class="product-price">{{ formatPrice(product.price) }}</p>
             <p class="product-description">{{ product.name }}</p>
@@ -67,7 +67,7 @@
         <div class="product-grid">
           <div v-for="product in newProducts" :key="product.id" class="product-card">
             <div class="product-image-wrapper">
-              <img :src="getProductImage(product.image)" :alt="product.name" class="product-img">
+              <img :src="product.image" :alt="product.name" class="product-img">
             </div>
             <p class="product-price">{{ formatPrice(product.price) }}</p>
             <p class="product-description">{{ product.name }}</p>
@@ -98,42 +98,95 @@ export default {
   data() {
     return {
       popularProducts: [
-        { id: 1, name: 'Vintage rib knit tube white', price: 200000, size: '12 / S / M', image: 'product1.jpg' },
-        { id: 2, name: 'Red Crewneck', price: 200000, size: '12 / S / M', image: 'product2.jpg' },
-        { id: 3, name: 'Necklace', price: 200000, size: '12 / S / M', image: 'product3.jpg' },
-        { id: 4, name: 'Necklace', price: 200000, size: '12 / S / M', image: 'product4.jpg' },
-        { id: 5, name: 'Yellow Graphic Tee', price: 200000, size: '12 / S / M', image: 'product5.jpg' }
+        { 
+          id: 1, 
+          name: 'Vintage rib knit tube white', 
+          price: 200000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 2, 
+          name: 'Red Crewneck', 
+          price: 200000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 3, 
+          name: 'Necklace', 
+          price: 200000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 4, 
+          name: 'Gold Chain Necklace', 
+          price: 200000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 5, 
+          name: 'Yellow Graphic Tee', 
+          price: 200000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop'
+        }
       ],
       newProducts: [
-        { id: 6, name: 'Vintage Chicago cubs white crewneck', price: 300000, size: '12 / S / M', image: 'product5.jpg' },
-        { id: 7, name: 'Red Crewneck', price: 300000, size: '12 / S / M', image: 'product2.jpg' },
-        { id: 8, name: 'Necklace', price: 300000, size: '12 / S / M', image: 'product3.jpg' },
-        { id: 9, name: 'Necklace', price: 300000, size: '12 / S / M', image: 'product4.jpg' },
-        { id: 10, name: 'Purple floral tank top', price: 300000, size: '12 / S / M', image: 'product6.jpg' }
+        { 
+          id: 6, 
+          name: 'Vintage Chicago cubs white crewneck', 
+          price: 300000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1622445275576-721325763afe?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 7, 
+          name: 'Red Crewneck', 
+          price: 300000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 8, 
+          name: 'Silver Necklace', 
+          price: 300000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 9, 
+          name: 'Pearl Necklace', 
+          price: 300000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400&h=500&fit=crop'
+        },
+        { 
+          id: 10, 
+          name: 'Purple floral tank top', 
+          price: 300000, 
+          size: '12 / S / M', 
+          image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=500&fit=crop'
+        }
       ],
       brands: ['Vans', 'Bohos', 'Mango', 'Reebok', 'Converse', 'Sandtro', 'Nike', 'Adidas', 'Dior', 'Puma', 'Zara', 'Bershka', 'American Eagle']
     }
   },
   methods: {
-    getProductImage(imageName) {
-      // Jika menggunakan folder assets
-      try {
-        return require(`@/assets/images/products/${imageName}`);
-      } catch (e) {
-        // Fallback ke placeholder jika gambar tidak ditemukan
-        return `https://via.placeholder.com/300x350/f0f0f0/666?text=${imageName}`;
-      }
-    },
     formatPrice(price) {
       return `Rp${price.toLocaleString('id-ID')}`;
     },
     handleShopNow() {
       console.log('Shop Now clicked');
       // Redirect ke halaman shop atau scroll ke produk
+      this.$router.push('/products');
     },
     filterByBrand(brand) {
       console.log('Filter by brand:', brand);
-      // Implementasi filter brand
+      // Redirect ke halaman products dengan filter brand
+      this.$router.push({ path: '/products', query: { brand: brand } });
     }
   }
 }
