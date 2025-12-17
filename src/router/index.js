@@ -36,6 +36,11 @@ const router = createRouter({
       name: 'product',
       component: ProductPage,
     },
+    {
+      path: '/products/:id',
+      name: 'product-detail',
+      component: ProductPage, // Component ini mungkin perlu diganti dengan ProductDetailPage jika sudah dibuat
+    },
   ],
 })
 
