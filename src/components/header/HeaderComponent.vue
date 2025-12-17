@@ -1,7 +1,6 @@
 <template>
   <header class="header">
     <div class="header-container">
-      <!-- ... (bagian logo dan search tidak berubah) ... -->
       <!-- Logo -->
       <a href="/" class="logo">
         <img
@@ -53,13 +52,14 @@
         </a>
 
         <!-- User Dropdown -->
-        <!-- Tambahkan @click untuk memicu fungsi toggleDropdown -->
-        <div class="user-dropdown" @click="toggleDropdown">
-          <img :src="userAvatar" class="avatar" />
-          <span class="chevron">▾</span>
+        <div class="user-dropdown" ref="userDropdown">
+          <div @click.stop="toggleDropdown" class="user-trigger">
+            <img :src="userAvatar" class="avatar" />
+            <span class="chevron">▾</span>
+          </div>
 
-          <!-- Tampilkan/sembunyikan menu berdasarkan showDropdown -->
-          <div v-if="showDropdown" class="dropdown-menu">
+          <!-- Dropdown Menu -->
+          <div :class="['dropdown-menu', { 'show': showDropdown }]" @click.stop>
 
             <a href="/profile" class="dropdown-item">
               <svg class="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,6 @@
               Order
             </a>
 
-            <!-- Mencegah event click menyebar ke elemen induk dropdown -->
             <button
               @click.stop="openLogoutModal"
               class="dropdown-item logout-item"
@@ -109,7 +108,6 @@
 
 <script>
 import LogoutModal from "@/components/modals/LogoutModal.vue";
-// Ganti dengan path service autentikasi Anda yang sebenarnya
 import authService from "@/services/authService";
 
 export default {
@@ -119,42 +117,48 @@ export default {
   data() {
     return {
       search: "",
-      // isLoggedIn disetel ke true secara default untuk pengujian dropdown,
-      // Anda bisa mengubahnya kembali ke false jika diperlukan
       isLoggedIn: true,
-      // Status untuk mengontrol visibilitas dropdown
       showDropdown: false,
       showLogoutModal: false,
-      cartCount: 1,
-      wishlistCount: 1,
+      cartCount: 0,
+      wishlistCount: 0,
       userAvatar: "https://i.pravatar.cc/150?img=12",
     };
   },
 
   mounted() {
-    // Memeriksa status login saat komponen dimuat
     this.isLoggedIn = authService.isAuthenticated();
     if (this.isLoggedIn) this.loadUserData();
-    // Menambahkan event listener global untuk menangani klik di luar dropdown
-    document.addEventListener("click", this.handleClickOutside);
+    // Delay untuk memastikan DOM sudah ready dan event tidak conflict
+    setTimeout(() => {
+      document.addEventListener("click", this.handleClickOutside);
+    }, 100);
   },
 
   beforeUnmount() {
-    // Membersihkan event listener saat komponen dihancurkan
     document.removeEventListener("click", this.handleClickOutside);
   },
 
   methods: {
-    // Fungsi untuk mengubah status showDropdown
+    handleSearch() {
+      if (this.search.trim()) {
+        this.$router.push({
+          path: '/products',
+          query: { search: this.search.trim() }
+        });
+      }
+    },
+
     toggleDropdown() {
       this.showDropdown = !this.showDropdown;
     },
 
-    // Fungsi untuk menutup dropdown jika klik dilakukan di luar elemen dropdown
+    closeDropdown() {
+      this.showDropdown = false;
+    },
+
     handleClickOutside(e) {
-      // Menggunakan ref atau cara lain yang sesuai untuk mendapatkan elemen dropdown
-      // Jika Anda tidak menggunakan `ref`, `this.$el.querySelector(".user-dropdown")` bisa digunakan
-      const dropdown = this.$el.querySelector(".user-dropdown");
+      const dropdown = this.$refs.userDropdown;
       if (dropdown && !dropdown.contains(e.target)) {
         this.showDropdown = false;
       }
@@ -166,13 +170,11 @@ export default {
     },
 
     async handleLogout() {
-      // Logika logout dari authService Anda
       const res = await authService.logout();
       if (res.success) {
         this.isLoggedIn = false;
         this.cartCount = 0;
         this.wishlistCount = 0;
-        // Ganti dengan router push Anda
         this.$router.push("/login");
       }
     },
@@ -186,233 +188,75 @@ export default {
 </script>
 
 <style scoped>
-/* ... (bagian style tidak berubah) ... */
-/* Styles tetap sama dengan yang Anda berikan */
-
-/* ===== Header ===== */
-.header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.header-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 14px 24px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-/* ===== Logo ===== */
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-.logo-icon {
-  width: 120px;
-  height: 36px;
-}
-
-/* ===== Search ===== */
-.search-wrapper {
-  flex: 1;
-  position: relative;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 16px 12px 40px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  font-size: 14px;
-  outline: none;
-}
-
-.search-input::placeholder {
-  color: #9ca3af;
-}
-
-.search-input:focus {
-  border-color: #0d9488;
-}
-
-/* ===== Actions ===== */
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-/* ===== Buttons ===== */
-.btn {
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.btn-login {
-  color: #0d9488;
-  border: 1px solid #0d9488;
-}
-
-.btn-login:hover {
-  background-color: #f0fdfa;
-}
-
-.btn-signup {
-  background-color: #0d9488;
-  color: #ffffff;
-}
-
-.btn-signup:hover {
-  background-color: #0f766e;
-}
-
-/* ===== Icon Buttons (Cart & Wishlist) ===== */
-.icon-btn {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #374151;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.icon-btn:hover {
-  background-color: #f3f4f6;
-}
-
-.icon {
-  width: 24px;
-  height: 24px;
-}
-
-.badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background-color: #ef4444;
-  color: white;
-  font-size: 10px;
-  font-weight: 600;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-}
-
-/* ===== User Dropdown ===== */
+/* Override CSS conflicts dan perbaiki dropdown display */
 .user-dropdown {
   position: relative;
+}
+
+.user-trigger {
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
 }
 
-.user-dropdown:hover {
-  background-color: #f3f4f6;
+/* Dropdown menu - ALWAYS hidden by default */
+.user-dropdown .dropdown-menu {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  left: auto !important;
+  background-color: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  min-width: 200px !important;
+  padding: 8px !important;
+  z-index: 9999 !important;
+  /* Hidden by default */
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateY(-10px) !important;
+  transition: all 0.2s ease !important;
+  pointer-events: none !important;
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #e5e7eb;
+/* Show dropdown when has .show class */
+.user-dropdown .dropdown-menu.show {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
 }
 
-/* ===== Dropdown Menu - Updated Design ===== */
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
-  padding: 8px;
-  z-index: 50;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  color: #1f2937;
-  text-decoration: none;
-  border-radius: 8px;
+/* Dropdown items */
+.user-dropdown .dropdown-menu a.dropdown-item,
+.user-dropdown .dropdown-menu button.dropdown-item {
+  background: transparent !important;
+  padding: 12px 16px !important;
+  transition: background-color 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  color: #1f2937 !important;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
   font-size: 15px;
-  font-weight: 400;
-  transition: all 0.2s ease;
   cursor: pointer;
   border: none;
-  background-color: transparent; /* Pastikan button memiliki background transparan */
-  width: 100%; /* Pastikan button mengisi lebar dropdown-item */
-  text-align: left; /* Pastikan teks button rata kiri */
+  text-decoration: none;
 }
 
-.dropdown-item:hover {
-  background-color: #f3f4f6;
+.user-dropdown .dropdown-menu a.dropdown-item:hover,
+.user-dropdown .dropdown-menu button.dropdown-item:hover {
+  background-color: #f3f4f6 !important;
 }
 
-.dropdown-icon {
-  width: 20px;
-  height: 20px;
-  color: #9ca3af;
+.user-dropdown .dropdown-menu .logout-item {
+  color: #ef4444 !important;
 }
 
-.logout-item {
-  color: #ef4444;
-  border-top: 1px solid #f3f4f6;
-  margin-top: 8px;
-  padding-top: 12px;
-}
-
-.logout-item:hover {
-  background-color: #fef2f2;
-}
-
-.logout-item .dropdown-icon {
-  color: #ef4444;
-}
-
-/* ===== Language Selector (Lang) ===== */
-.lang {
-  font-size: 14px;
-  color: #374151;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
-}
-
-.lang:hover {
-  background-color: #f3f4f6;
-}
-
-.chevron {
-  font-size: 12px;
-  margin-left: 2px;
+.user-dropdown .dropdown-menu .logout-item:hover {
+  background-color: #fef2f2 !important;
 }
 </style>

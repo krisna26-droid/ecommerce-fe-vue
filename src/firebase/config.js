@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyDAyNetLP5p841YlaqWtUMk0KyxoKueIxs",
   authDomain: "timedoor-ecommerce-fe.firebaseapp.com",

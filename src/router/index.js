@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../components/pages/HomePage.vue'
 import WebLogin from '../components/auth/WebLogin.vue' 
 import WebSignup from '../components/auth/WebSignup.vue'
+import ProductPage from '../components/pages/ProductPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,6 +30,11 @@ const router = createRouter({
       name: 'register',
       component: WebSignup,
       meta: {layout: 'auth'},
+    },
+    {
+      path: '/products',
+      name: 'product',
+      component: ProductPage,
     },
   ],
 })

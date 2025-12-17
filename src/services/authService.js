@@ -12,6 +12,14 @@ class AuthService {
   // Register new user
   async register(userData) {
     try {
+      // Validate required fields
+      if (!userData.email || !userData.password || !userData.fullname || !userData.username) {
+        return {
+          success: false,
+          error: 'Email, password, fullname, and username are required.'
+        };
+      }
+
       // 1. Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
