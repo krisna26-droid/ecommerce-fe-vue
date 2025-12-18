@@ -1,8 +1,7 @@
-// src/firebase/config.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDAyNetLP5p841YlaqWtUMk0KyxoKueIxs",
@@ -14,14 +13,8 @@ const firebaseConfig = {
   appId: "1:344924199668:web:acb6c68fe5b2e2dfafdca1"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase Authentication
-const auth = getAuth(app);
-
-// Initialize Firestore
-const db = getFirestore(app);
-
-export { auth, db };
+export const auth = getAuth(app);
+export const db = getFirestore(app);     // Untuk data user
+export const rtdb = getDatabase(app);   // Untuk data produk (Realtime DB)
 export default app;

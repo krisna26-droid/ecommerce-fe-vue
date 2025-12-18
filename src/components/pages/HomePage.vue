@@ -1,9 +1,7 @@
 <template>
   <div class="homepage">
-
     <main class="main-content">
       
-      <!-- Hero Banner Section -->
       <section class="hero-section">
         <img src="@/assets/images/hero/banner.png" alt="Hero Banner" class="hero-image" />
         <div class="hero-overlay">
@@ -16,15 +14,21 @@
         </div>
       </section>
 
-      <!-- Popular Items Section -->
       <section class="product-section">
         <div class="section-header">
           <h5 class="section-title">Popular Items</h5>
-          <a href="#" class="see-all-link">See all</a>
+          <router-link to="/products" class="see-all-link">See all</router-link>
         </div>
 
-        <div class="product-grid">
-          <div v-for="product in popularProducts" :key="product.id" class="product-card">
+        <div v-if="isLoading" class="loading-placeholder">Loading items...</div>
+        
+        <div v-else class="product-grid">
+          <div 
+            v-for="product in popularProducts" 
+            :key="product.id" 
+            class="product-card"
+            @click="goToDetail(product.id)"
+          >
             <div class="product-image-wrapper">
               <img :src="product.image" :alt="product.name" class="product-img">
             </div>
@@ -35,13 +39,12 @@
 
           <div class="see-all-card-wrapper">
             <div class="see-all-card">
-              <a href="#" class="see-all-btn">See All Popular Product</a>
+              <router-link to="/products" class="see-all-btn">See All Popular Product</router-link>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Shop by Brand Section -->
       <section class="brand-section">
         <h5 class="section-title">Shop by Brand</h5>
         <div class="brand-buttons">
@@ -57,15 +60,21 @@
         </div>
       </section>
       
-      <!-- New Product Section -->
       <section class="product-section">
         <div class="section-header">
           <h5 class="section-title">New Product</h5>
-          <a href="#" class="see-all-link">See all</a>
+          <router-link to="/products" class="see-all-link">See all</router-link>
         </div>
 
-        <div class="product-grid">
-          <div v-for="product in newProducts" :key="product.id" class="product-card">
+        <div v-if="isLoading" class="loading-placeholder">Loading items...</div>
+
+        <div v-else class="product-grid">
+          <div 
+            v-for="product in newProducts" 
+            :key="product.id" 
+            class="product-card"
+            @click="goToDetail(product.id)"
+          >
             <div class="product-image-wrapper">
               <img :src="product.image" :alt="product.name" class="product-img">
             </div>
@@ -76,19 +85,22 @@
 
           <div class="see-all-card-wrapper">
             <div class="see-all-card">
-              <a href="#" class="see-all-btn">See All New Product</a>
+              <router-link to="/products" class="see-all-btn">See All New Product</router-link>
             </div>
           </div>
         </div>
       </section>
 
     </main>
-
   </div>
 </template>
 
 <script>
+// Gabungkan semua import di bagian paling atas
 import BaseButton from '../ui/BaseButton.vue';
+import { rtdb } from '@/firebase/config';
+import { ref as dbRef, get, child } from 'firebase/database';
+import { seedProducts } from '@/firebase/seeder'; // Import seeder
 
 export default {
   name: 'HomePage',
@@ -97,99 +109,67 @@ export default {
   },
   data() {
     return {
-      popularProducts: [
-        { 
-          id: 1, 
-          name: 'Vintage rib knit tube white', 
-          price: 200000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 2, 
-          name: 'Red Crewneck', 
-          price: 200000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 3, 
-          name: 'Necklace', 
-          price: 200000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 4, 
-          name: 'Gold Chain Necklace', 
-          price: 200000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 5, 
-          name: 'Yellow Graphic Tee', 
-          price: 200000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop'
-        }
-      ],
-      newProducts: [
-        { 
-          id: 6, 
-          name: 'Vintage Chicago cubs white crewneck', 
-          price: 300000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1622445275576-721325763afe?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 7, 
-          name: 'Red Crewneck', 
-          price: 300000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 8, 
-          name: 'Silver Necklace', 
-          price: 300000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 9, 
-          name: 'Pearl Necklace', 
-          price: 300000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400&h=500&fit=crop'
-        },
-        { 
-          id: 10, 
-          name: 'Purple floral tank top', 
-          price: 300000, 
-          size: '12 / S / M', 
-          image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=500&fit=crop'
-        }
-      ],
+      allProducts: [],
+      isLoading: true,
       brands: ['Vans', 'Bohos', 'Mango', 'Reebok', 'Converse', 'Sandtro', 'Nike', 'Adidas', 'Dior', 'Puma', 'Zara', 'Bershka', 'American Eagle']
     }
   },
+  computed: {
+    popularProducts() {
+      return this.allProducts.slice(0, 5);
+    },
+    newProducts() {
+      return [...this.allProducts].reverse().slice(0, 5);
+    }
+  },
   methods: {
+    async fetchProducts() {
+      this.isLoading = true;
+      try {
+        const snapshot = await get(child(dbRef(rtdb), 'products'));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          this.allProducts = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key],
+            price: Number(data[key].price)
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching homepage products:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     formatPrice(price) {
+      if (!price) return 'Rp0';
       return `Rp${price.toLocaleString('id-ID')}`;
     },
     handleShopNow() {
-      console.log('Shop Now clicked');
-      // Redirect ke halaman shop atau scroll ke produk
       this.$router.push('/products');
     },
     filterByBrand(brand) {
-      console.log('Filter by brand:', brand);
-      // Redirect ke halaman products dengan filter brand
       this.$router.push({ path: '/products', query: { brand: brand } });
+    },
+    goToDetail(id) {
+      this.$router.push(`/products/${id}`);
     }
+  },
+  async mounted() {
+    // 1. Jalankan seeder (HANYA SEKALI SAAT PERTAMA KALI)
+    // await seedProducts(); 
+    
+    // 2. Ambil data untuk ditampilkan
+    this.fetchProducts();
   }
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.loading-placeholder {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+</style>

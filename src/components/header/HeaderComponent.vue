@@ -15,6 +15,7 @@
         <input
           type="text"
           v-model="search"
+          @keyup.enter="handleSearch"
           class="search-input"
           placeholder="Search for items"
         />
@@ -58,40 +59,19 @@
             <span class="chevron">▾</span>
           </div>
 
-          <!-- Dropdown Menu -->
-          <div :class="['dropdown-menu', { 'show': showDropdown }]" @click.stop>
-
-            <a href="/profile" class="dropdown-item">
-              <svg class="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Profile
-            </a>
-
-            <a href="/orders" class="dropdown-item">
-              <svg class="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Order
-            </a>
+          <div :class="['dropdown-menu', { show: showDropdown }]" @click.stop>
+            <a href="/profile" class="dropdown-item">Profile</a>
+            <a href="/orders" class="dropdown-item">Order</a>
 
             <button
               @click.stop="openLogoutModal"
               class="dropdown-item logout-item"
             >
-              <svg class="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
               Logout
             </button>
-
           </div>
         </div>
 
-        <!-- Language -->
         <div class="lang">
           EN <span class="chevron">▾</span>
         </div>
@@ -117,7 +97,7 @@ export default {
   data() {
     return {
       search: "",
-      isLoggedIn: true,
+      isLoggedIn: false,
       showDropdown: false,
       showLogoutModal: false,
       cartCount: 0,
@@ -129,32 +109,47 @@ export default {
   mounted() {
     this.isLoggedIn = authService.isAuthenticated();
     if (this.isLoggedIn) this.loadUserData();
-    // Delay untuk memastikan DOM sudah ready dan event tidak conflict
-    setTimeout(() => {
-      document.addEventListener("click", this.handleClickOutside);
-    }, 100);
+
+    // Sinkron awal dari URL
+    this.search = this.$route.query.search || "";
+
+    document.addEventListener("click", this.handleClickOutside);
   },
 
   beforeUnmount() {
     document.removeEventListener("click", this.handleClickOutside);
   },
 
-  methods: {
-    handleSearch() {
-      if (this.search.trim()) {
-        this.$router.push({
-          path: '/products',
-          query: { search: this.search.trim() }
+  watch: {
+    // URL → input
+    "$route.query.search"(newVal) {
+      this.search = newVal || "";
+    },
+
+    // INPUT → URL (INI YANG MEMPERBAIKI BUG)
+    search(newVal) {
+      if (!newVal.trim() && this.$route.query.search) {
+        this.$router.replace({
+          path: "/products",
+          query: {}
         });
       }
+    }
+  },
+
+  methods: {
+    handleSearch() {
+      const keyword = this.search.trim();
+      if (!keyword) return;
+
+      this.$router.push({
+        path: "/products",
+        query: { search: keyword }
+      });
     },
 
     toggleDropdown() {
       this.showDropdown = !this.showDropdown;
-    },
-
-    closeDropdown() {
-      this.showDropdown = false;
     },
 
     handleClickOutside(e) {
