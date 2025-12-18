@@ -54,7 +54,9 @@
 
             <div class="action-buttons">
               <button class="btn-buy">Buy Now</button>
-              <button class="btn-cart">Add to Cart</button>
+              <button class="btn-cart" :disabled="isAdding" @click="handleAddToCart">
+                {{ isAdding ? 'Adding...' : 'Add to Cart' }}
+              </button>
             </div>
           </div>
 
@@ -87,6 +89,12 @@
         </div>
       </section>
     </div>
+
+    <AddToCartModal 
+      :show="showCartModal" 
+      :productName="product.name" 
+      @close="showCartModal = false" 
+    />
   </div>
   
   <div v-else-if="isLoading" class="loading-state">
@@ -96,20 +104,26 @@
 
 <script>
 import { rtdb } from '@/firebase/config';
-import { ref as dbRef, get, child } from 'firebase/database';
+import { ref as dbRef, get, child, push, set, remove } from 'firebase/database';
+import AddToCartModal from '@/components/modals/AddToCartModal.vue';
 
 export default {
   name: 'ProductDetailPage',
+  components: {
+    AddToCartModal
+  },
   data() {
     return {
       product: null,
       allProducts: [],
       isLoading: true,
-      isWishlisted: false
+      isAdding: false,
+      isWishlisted: false,
+      wishlistKey: null,
+      showCartModal: false
     }
   },
   computed: {
-    // Menampilkan 4 produk selain produk yang sedang dibuka
     otherProducts() {
       return this.allProducts
         .filter(p => p.id !== this.$route.params.id)
@@ -119,7 +133,6 @@ export default {
   async mounted() {
     await this.fetchAllData();
   },
-  // Watcher untuk mendeteksi perubahan ID di URL (saat klik 'Other Product')
   watch: {
     '$route.params.id': {
       handler: 'fetchSingleProduct',
@@ -138,31 +151,96 @@ export default {
             ...data[key],
             price: Number(data[key].price)
           }));
-          // Setelah semua produk diambil, cari produk spesifik untuk halaman ini
-          this.fetchSingleProduct();
+          await this.fetchSingleProduct();
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        // Handle error quietly
       } finally {
         this.isLoading = false;
       }
     },
 
-    fetchSingleProduct() {
+    async fetchSingleProduct() {
       const id = this.$route.params.id;
       const found = this.allProducts.find(p => p.id === id);
       if (found) {
         this.product = found;
+        await this.checkWishlistStatus(id);
+      }
+    },
+
+    async checkWishlistStatus(productId) {
+      try {
+        const wishlistSnapshot = await get(child(dbRef(rtdb), 'wishlists'));
+        if (wishlistSnapshot.exists()) {
+          const data = wishlistSnapshot.val();
+          const itemKey = Object.keys(data).find(key => data[key].productId === productId);
+          
+          if (itemKey) {
+            this.isWishlisted = true;
+            this.wishlistKey = itemKey;
+          } else {
+            this.isWishlisted = false;
+            this.wishlistKey = null;
+          }
+        }
+      } catch (error) {
+        // Handle error silently
+      }
+    },
+
+    async toggleWishlist() {
+      if (!this.product) return;
+      const wishlistRef = dbRef(rtdb, 'wishlists');
+
+      try {
+        if (this.isWishlisted) {
+          await remove(child(wishlistRef, this.wishlistKey));
+          this.isWishlisted = false;
+          this.wishlistKey = null;
+        } else {
+          const newWishlistRef = push(wishlistRef);
+          await set(newWishlistRef, {
+            productId: this.product.id,
+            name: this.product.name,
+            price: this.product.price,
+            image: this.product.image,
+            addedAt: new Date().toISOString()
+          });
+          this.isWishlisted = true;
+          this.wishlistKey = newWishlistRef.key;
+        }
+      } catch (error) {
+        // Fail silently
+      }
+    },
+
+    async handleAddToCart() {
+      if (!this.product) return;
+      this.isAdding = true;
+      try {
+        const cartRef = dbRef(rtdb, 'carts');
+        const newCartItemRef = push(cartRef);
+        await set(newCartItemRef, {
+          productId: this.product.id,
+          name: this.product.name,
+          price: this.product.price,
+          image: this.product.image,
+          size: this.product.size,
+          qty: 1,
+          addedAt: new Date().toISOString()
+        });
+        this.showCartModal = true;
+      } catch (error) {
+        alert("Failed to add item to cart.");
+      } finally {
+        this.isAdding = false;
       }
     },
 
     formatPrice(price) {
       if (!price) return 'Rp0';
       return `Rp${Number(price).toLocaleString('id-ID')}`;
-    },
-
-    toggleWishlist() {
-      this.isWishlisted = !this.isWishlisted;
     },
 
     goToProduct(id) {
@@ -175,6 +253,15 @@ export default {
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
+.wishlist-btn i.active {
+  color: #ff4d4d;
+}
+
+.btn-cart:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 .loading-state {
   display: flex;
@@ -204,7 +291,6 @@ export default {
   align-items: start;
 }
 
-/* Image Section */
 .main-image-wrapper {
   background: white;
   border-radius: 8px;
@@ -217,7 +303,6 @@ export default {
   display: block;
 }
 
-/* Info Section */
 .info-card {
   background: white;
   padding: 24px;
@@ -243,10 +328,6 @@ export default {
   font-size: 22px;
   cursor: pointer;
   color: #999;
-}
-
-.wishlist-btn i.active {
-  color: #ff4d4d;
 }
 
 .product-title {
@@ -302,7 +383,6 @@ export default {
   cursor: pointer;
 }
 
-/* Buttons */
 .action-buttons {
   margin-top: 30px;
   display: flex;
@@ -330,7 +410,6 @@ export default {
   cursor: pointer;
 }
 
-/* Seller Card */
 .seller-card {
   background: white;
   margin-top: 20px;
@@ -363,7 +442,6 @@ export default {
   margin-left: 5px;
 }
 
-/* Other Products Grid */
 .other-products {
   margin-top: 60px;
 }
@@ -388,14 +466,11 @@ export default {
   transition: 0.3s;
 }
 
-.mini-card:hover {
-  transform: translateY(-5px);
-}
-
 .mini-card img {
   width: 100%;
   height: 100%;
   max-height: 200px;
+  object-fit: cover;
 }
 
 .mini-info {
@@ -421,7 +496,6 @@ export default {
   margin-top: 5px;
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
   .product-main-layout {
     grid-template-columns: 1fr;

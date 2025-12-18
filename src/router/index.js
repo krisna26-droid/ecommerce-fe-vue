@@ -5,6 +5,8 @@ import WebLogin from '../components/auth/WebLogin.vue'
 import WebSignup from '../components/auth/WebSignup.vue'
 import ProductPage from '../components/pages/ProductPage.vue'
 import ProductDetailPage from '../components/pages/ProductDetailPage.vue'
+import CartPage from '../components/pages/CartPage.vue'
+import WishlistPage from '../components/pages/WishlistPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,6 +43,16 @@ const router = createRouter({
       path: '/products/:id',
       name: 'product-detail',
       component: ProductDetailPage,
+    },
+    {
+      path: '/cart',
+      name: 'cart',
+      component: CartPage,
+    },
+    {
+      path: '/wishlist',
+      name: 'wishlist',
+      component: WishlistPage,
     },
   ],
 })
