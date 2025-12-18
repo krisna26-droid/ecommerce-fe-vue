@@ -3,11 +3,23 @@
     <div class="container">
       <div class="page-header">
         <h1 class="page-title">Favorite items</h1>
-        <div class="item-badge">{{ wishlistItems.length }} Items</div>
+        <div v-if="!isLoading" class="item-badge">{{ wishlistItems.length }} Items</div>
+        <div v-else class="skeleton skeleton-badge"></div>
       </div>
 
-      <div v-if="isLoading" class="loading-state">
-        <div class="spinner"></div>
+      <div v-if="isLoading" class="wishlist-grid">
+        <div v-for="i in 6" :key="'skel-' + i" class="product-card">
+          <div class="image-wrapper skeleton"></div>
+          <div class="card-content">
+            <div class="skeleton skeleton-price"></div>
+            <div class="skeleton skeleton-title"></div>
+            <div class="meta-row">
+              <div class="skeleton skeleton-text" style="width: 40px;"></div>
+              <div class="skeleton skeleton-text" style="width: 30px;"></div>
+            </div>
+            <div class="skeleton skeleton-button"></div>
+          </div>
+        </div>
       </div>
 
       <div v-else-if="wishlistItems.length > 0" class="wishlist-grid">
@@ -104,9 +116,10 @@ export default {
           this.wishlistItems = [];
         }
       } catch (error) {
-        // Error handling silent
+        // Silent error
       } finally {
-        this.isLoading = false;
+        // Memberikan sedikit delay agar transisi skeleton terasa halus
+        setTimeout(() => { this.isLoading = false; }, 800);
       }
     },
 
@@ -116,7 +129,7 @@ export default {
           await remove(dbRef(rtdb, `wishlists/${id}`));
           this.wishlistItems = this.wishlistItems.filter(item => item.wishlistId !== id);
         } catch (error) {
-          // Error handling silent
+          // Silent error
         }
       }
     },
@@ -137,7 +150,7 @@ export default {
         this.selectedProductName = item.name;
         this.showCartModal = true;
       } catch (error) {
-        // Error handling silent
+        // Silent error
       }
     },
 
@@ -204,7 +217,24 @@ export default {
 }
 .btn-add-cart:hover { background: #008284; color: white; }
 
-/* --- Empty State Styling (Persis Gambar Referensi) --- */
+/* --- SKELETON ANIMASI --- */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-badge { width: 60px; height: 25px; border-radius: 4px; }
+.skeleton-price { width: 80px; height: 18px; margin-bottom: 10px; }
+.skeleton-title { width: 100%; height: 14px; margin-bottom: 8px; }
+.skeleton-text { height: 12px; }
+.skeleton-button { width: 100%; height: 32px; margin-top: 10px; }
+
+/* --- Empty State Styling --- */
 .empty-state { display: flex; justify-content: center; align-items: center; padding: 100px 0; }
 .empty-content-card { text-align: center; max-width: 400px; }
 
@@ -225,11 +255,4 @@ export default {
   display: inline-block; background-color: #009999; color: white; padding: 12px 35px; 
   border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 14px; 
 }
-
-/* Spinner */
-.spinner { 
-  width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #008284; 
-  border-radius: 50%; animation: spin 1s linear infinite; margin: 100px auto; 
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
