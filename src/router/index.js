@@ -9,6 +9,7 @@ import ProductPage from '../components/pages/ProductPage.vue'
 import ProductDetailPage from '../components/pages/ProductDetailPage.vue'
 import CartPage from '../components/pages/CartPage.vue'
 import WishlistPage from '../components/pages/WishlistPage.vue'
+import SeederTool from '../components/admin/SeederTool.vue'
 
 // Import Halaman Konfirmasi Pesanan
 import OrderConfirmationPage from '../components/pages/OrderConfirmationPage.vue'
@@ -20,6 +21,11 @@ import ChangePassword from '../components/pages/settings/ChangePassword.vue'
 import TransactionHistory from '../components/pages/settings/TransactionHistory.vue'
 
 const routes = [
+  {
+    path: '/seeder',
+    name: 'seeder',
+    component: SeederTool,
+  },
   {
     path: '/',
     name: 'home',
