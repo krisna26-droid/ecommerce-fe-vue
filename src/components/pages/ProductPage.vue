@@ -1,7 +1,7 @@
 <template>
   <main class="products-container">
     <div class="products-header">
-      <h1 class="products-title">Items</h1>
+      <h1 class="products-title">Vans Collections</h1>
       <div class="sort-wrapper">
         <select v-model="sortBy" class="sort-select">
           <option value="default">All Items</option>
@@ -12,9 +12,18 @@
       </div>
     </div>
 
-    <div v-if="isLoading" class="loading-state">
-      <div class="loader"></div>
-      <p>Loading products...</p>
+    <div v-if="isLoading" class="products-grid">
+      <div v-for="n in 12" :key="n" class="skeleton-card">
+        <div class="skeleton-image"></div>
+        <div class="skeleton-info">
+          <div class="skeleton-text price"></div>
+          <div class="skeleton-text title"></div>
+          <div class="skeleton-footer">
+            <div class="skeleton-text small"></div>
+            <div class="skeleton-text small"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-else-if="filteredProducts.length" class="products-grid">
@@ -49,9 +58,21 @@
     </div>
 
     <div v-else class="empty-state">
-      <h2>Product not found</h2>
-      <p>Try using another keyword or brand.</p>
-      <button class="reset-btn" @click="resetSearch">Reset Search</button>
+      <div class="not-found-illustration">
+        <div class="bag-icon">
+          <div class="bag-handle"></div>
+          <div class="bag-body">
+            <div class="x-mark">
+              <i class="fa-solid fa-xmark"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h2 class="empty-title">Product not found</h2>
+      <p class="empty-description">
+        We cannot find what you looking for, try to use other keywords or reset keyword.
+      </p>
+      <button class="reset-btn" @click="resetSearch">Reset Keyword</button>
     </div>
   </main>
 </template>
@@ -59,6 +80,7 @@
 <script>
 import { rtdb } from '@/firebase/config'; 
 import { ref as dbRef, get, child, set, push, remove } from 'firebase/database';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default {
   name: 'ProductsPage',
@@ -66,23 +88,24 @@ export default {
     return {
       sortBy: 'default',
       products: [],
-      isLoading: true
+      isLoading: true,
+      currentUser: null
     };
   },
   computed: {
     searchQuery() {
       return (this.$route.query.search || '').trim().toLowerCase();
     },
-    brandFilter() {
-      return (this.$route.query.brand || '').toLowerCase();
+    categoryFilter() {
+      return (this.$route.query.category || '').toLowerCase();
     },
     filteredProducts() {
       let result = [...this.products];
       if (this.searchQuery) {
         result = result.filter(p => p.name.toLowerCase().includes(this.searchQuery));
       }
-      if (this.brandFilter) {
-        result = result.filter(p => p.brand && p.brand.toLowerCase() === this.brandFilter);
+      if (this.categoryFilter) {
+        result = result.filter(p => p.category && p.category.toLowerCase() === this.categoryFilter);
       }
       
       if (this.sortBy === 'price-low') {
@@ -99,20 +122,19 @@ export default {
     async fetchProducts() {
       this.isLoading = true;
       try {
-        // Ambil data wishlist dulu untuk sinkronisasi ikon hati
-        const wishlistSnapshot = await get(child(dbRef(rtdb), 'wishlists'));
-        const activeWishlists = wishlistSnapshot.exists() ? wishlistSnapshot.val() : {};
+        let activeWishlists = {};
+        if (this.currentUser) {
+          const wishlistSnapshot = await get(child(dbRef(rtdb), `wishlists/${this.currentUser.uid}`));
+          activeWishlists = wishlistSnapshot.exists() ? wishlistSnapshot.val() : {};
+        }
 
-        // Ambil data produk
         const snapshot = await get(child(dbRef(rtdb), 'products'));
         if (snapshot.exists()) {
           const data = snapshot.val();
           this.products = Object.keys(data).map(key => {
-            // Cek apakah produk ini ada di wishlist
             const wishlistKey = Object.keys(activeWishlists).find(
               wKey => activeWishlists[wKey].productId === key
             );
-
             return {
               id: key,
               ...data[key],
@@ -123,27 +145,26 @@ export default {
           });
         }
       } catch (error) {
-        // Fail silently
+        console.error("Fetch products failed:", error);
       } finally {
         this.isLoading = false;
       }
     },
-
     async toggleWishlist(id) {
+      if (!this.currentUser) {
+        alert("Please login to manage your wishlist");
+        return;
+      }
       const product = this.products.find(p => p.id === id);
       if (!product) return;
-
-      const wishlistRef = dbRef(rtdb, 'wishlists');
-
+      const userWishlistRef = dbRef(rtdb, `wishlists/${this.currentUser.uid}`);
       try {
         if (product.isWishlisted) {
-          // Hapus dari Firebase
-          await remove(child(wishlistRef, product.wishlistKey));
+          await remove(child(userWishlistRef, product.wishlistKey));
           product.isWishlisted = false;
           product.wishlistKey = null;
         } else {
-          // Tambah ke Firebase
-          const newWishRef = push(wishlistRef);
+          const newWishRef = push(userWishlistRef);
           await set(newWishRef, {
             productId: product.id,
             name: product.name,
@@ -155,10 +176,9 @@ export default {
           product.wishlistKey = newWishRef.key;
         }
       } catch (error) {
-        // Fail silently
+        console.error("Wishlist operation failed:", error);
       }
     },
-
     formatPrice(price) {
       return `Rp${Number(price).toLocaleString('id-ID')}`;
     },
@@ -170,7 +190,11 @@ export default {
     }
   },
   mounted() {
-    this.fetchProducts();
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      this.currentUser = user;
+      this.fetchProducts();
+    });
   }
 };
 </script>
@@ -189,15 +213,25 @@ export default {
   align-items: center;
   margin-bottom: 30px;
 }
-.products-title { font-size: 24px; font-weight: 600; }
+.products-title { 
+  font-size: 24px; 
+  font-weight: 800; 
+  text-transform: uppercase; 
+  color: #000;
+}
 .sort-select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 2px solid #000;
   border-radius: 4px;
+  font-weight: 600;
   outline: none;
+  cursor: pointer;
+}
+.sort-select:focus {
+  border-color: #C41230;
 }
 
-/* Grid Layout seragam sesuai desain */
+/* Grid Layout */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -215,13 +249,12 @@ export default {
   cursor: pointer;
   transition: transform 0.2s;
 }
-.product-card:hover { transform: translateY(-4px); }
+.product-card:hover { transform: translateY(-8px); }
 
-/* Image Container dengan Aspect Ratio */
 .product-image-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 3/4;
+  aspect-ratio: 1/1;
   overflow: hidden;
   border-radius: 4px;
   background-color: #f5f5f5;
@@ -232,7 +265,6 @@ export default {
   object-fit: cover;
 }
 
-/* Wishlist Button */
 .wishlist-btn {
   position: absolute;
   top: 10px;
@@ -250,23 +282,24 @@ export default {
   color: #ccc;
   transition: 0.2s;
 }
-.wishlist-btn.active { color: #ff4d4d; }
+.wishlist-btn.active { color: #C41230; }
 .wishlist-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; }
 
-/* Product Info */
 .product-info {
   padding: 12px 0;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
-.product-price { font-weight: 700; color: #008284; margin-bottom: 4px; }
+/* Harga Produk: Vans Red */
+.product-price { font-weight: 800; color: #C41230; margin-bottom: 4px; font-size: 15px; }
 .product-name {
   font-size: 14px;
-  color: #333;
+  color: #000;
+  font-weight: 600;
   margin-bottom: 8px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: 34px;
@@ -276,29 +309,137 @@ export default {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #888;
+  color: #666;
+  font-weight: 500;
 }
 
-/* Loading & Empty State */
-.loading-state, .empty-state { text-align: center; padding: 100px 0; }
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #008284;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 15px;
+/* SKELETON ANIMATION STYLE */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.skeleton-image, .skeleton-text {
+  background: #eee;
+  background: linear-gradient(90deg, #f0f0f0 25%, #fce8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.skeleton-image {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 4px;
+}
+
+.skeleton-info {
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+}
+
+.skeleton-text.price { width: 60%; height: 18px; }
+.skeleton-text.title { width: 90%; height: 14px; }
+.skeleton-footer { display: flex; justify-content: space-between; margin-top: 4px; }
+.skeleton-text.small { width: 30%; height: 10px; }
+
+/* EMPTY STATE DESIGN: Vans Red & Black */
+.empty-state {
+  text-align: center;
+  padding: 100px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.not-found-illustration {
+  margin-bottom: 30px;
+}
+
+.bag-icon {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bag-handle {
+  width: 40px;
+  height: 25px;
+  border: 5px solid #000;
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+}
+
+.bag-body {
+  width: 80px;
+  height: 70px;
+  background-color: #C41230; /* Vans Red */
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.x-mark {
+  width: 35px;
+  height: 35px;
+  background-color: #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.empty-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #000;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.empty-description {
+  font-size: 16px;
+  color: #444;
+  max-width: 420px;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
 
 .reset-btn {
-  margin-top: 15px;
-  padding: 10px 25px;
-  background: #008284;
+  background-color: #000;
   color: white;
+  padding: 12px 40px;
   border: none;
   border-radius: 4px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 16px;
   cursor: pointer;
+  transition: 0.3s;
+}
+
+.reset-btn:hover {
+  background-color: #C41230;
+  transform: translateY(-2px);
 }
 </style>

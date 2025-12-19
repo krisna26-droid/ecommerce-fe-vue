@@ -2,6 +2,7 @@
   <div v-if="product" class="product-detail-page">
     <div class="container">
       <div class="product-main-layout">
+        
         <div class="product-gallery">
           <div class="main-image-wrapper">
             <img :src="product.image" :alt="product.name" class="main-image" />
@@ -19,7 +20,7 @@
             
             <h2 class="product-title">{{ product.name }}</h2>
             <p class="product-subtitle">
-              {{ product.size }} · {{ product.condition || 'Very Good' }} · {{ product.location || 'Denpasar' }}
+              {{ product.size }} · {{ product.location || 'Denpasar' }}
             </p>
             
             <hr class="divider" />
@@ -32,19 +33,19 @@
             <table class="details-table">
               <tr>
                 <td>Category</td>
-                <td class="link-text">{{ product.category || 'General' }}</td>
+                <td class="link-text">{{ product.category || 'Shoes' }}</td>
               </tr>
               <tr>
                 <td>Size</td>
                 <td>{{ product.size }}</td>
               </tr>
               <tr>
-                <td>Condition</td>
-                <td>{{ product.condition || 'Very Good' }}</td>
+                <td>Color</td>
+                <td>{{ product.color || 'White' }}</td>
               </tr>
               <tr>
-                <td>Color</td>
-                <td>{{ product.color || 'Not specified' }}</td>
+                <td>Uploaded</td>
+                <td>5 hours ago</td>
               </tr>
               <tr>
                 <td>Shipping</td>
@@ -53,7 +54,7 @@
             </table>
 
             <div class="action-buttons">
-              <button class="btn-buy">Buy Now</button>
+              <button class="btn-buy" @click="handleBuyNow">Buy Now</button>
               <button class="btn-cart" :disabled="isAdding" @click="handleAddToCart">
                 {{ isAdding ? 'Adding...' : 'Add to Cart' }}
               </button>
@@ -79,7 +80,9 @@
         <h3 class="section-title">Other Product</h3>
         <div class="other-grid">
           <div v-for="item in otherProducts" :key="item.id" class="mini-card" @click="goToProduct(item.id)">
-            <img :src="item.image" :alt="item.name" />
+            <div class="mini-img-wrapper">
+              <img :src="item.image" :alt="item.name" class="mini-img" />
+            </div>
             <div class="mini-info">
               <p class="mini-price">{{ formatPrice(item.price) }}</p>
               <p class="mini-name">{{ item.name }}</p>
@@ -91,6 +94,7 @@
     </div>
 
     <AddToCartModal 
+      v-if="product"
       :show="showCartModal" 
       :productName="product.name" 
       @close="showCartModal = false" 
@@ -98,20 +102,20 @@
   </div>
   
   <div v-else-if="isLoading" class="loading-state">
-    <p>Loading product details...</p>
+    <div class="spinner"></div>
+    <p>Loading details...</p>
   </div>
 </template>
 
 <script>
 import { rtdb } from '@/firebase/config';
 import { ref as dbRef, get, child, push, set, remove } from 'firebase/database';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import AddToCartModal from '@/components/modals/AddToCartModal.vue';
 
 export default {
   name: 'ProductDetailPage',
-  components: {
-    AddToCartModal
-  },
+  components: { AddToCartModal },
   data() {
     return {
       product: null,
@@ -120,27 +124,32 @@ export default {
       isAdding: false,
       isWishlisted: false,
       wishlistKey: null,
-      showCartModal: false
+      showCartModal: false,
+      currentUser: null
     }
   },
   computed: {
     otherProducts() {
+      const currentId = this.$route.params.id;
       return this.allProducts
-        .filter(p => p.id !== this.$route.params.id)
+        .filter(p => p.id !== currentId)
         .slice(0, 4);
     }
   },
-  async mounted() {
-    await this.fetchAllData();
-  },
+  // WATCHER: Memastikan data ter-update saat navigasi antar produk
   watch: {
     '$route.params.id': {
-      handler: 'fetchSingleProduct',
+      handler(newId) {
+        if (newId) {
+          this.loadProductData(newId);
+          window.scrollTo(0, 0);
+        }
+      },
       immediate: true
     }
   },
   methods: {
-    async fetchAllData() {
+    async loadProductData(productId) {
       this.isLoading = true;
       try {
         const snapshot = await get(child(dbRef(rtdb), 'products'));
@@ -151,56 +160,35 @@ export default {
             ...data[key],
             price: Number(data[key].price)
           }));
-          await this.fetchSingleProduct();
+          this.product = this.allProducts.find(p => p.id === productId);
+          if (this.currentUser && this.product) await this.checkWishlistStatus(productId);
         }
-      } catch (error) {
-        // Handle error quietly
-      } finally {
-        this.isLoading = false;
-      }
+      } catch (error) { console.error(error); }
+      finally { this.isLoading = false; }
     },
-
-    async fetchSingleProduct() {
-      const id = this.$route.params.id;
-      const found = this.allProducts.find(p => p.id === id);
-      if (found) {
-        this.product = found;
-        await this.checkWishlistStatus(id);
-      }
-    },
-
     async checkWishlistStatus(productId) {
       try {
-        const wishlistSnapshot = await get(child(dbRef(rtdb), 'wishlists'));
-        if (wishlistSnapshot.exists()) {
-          const data = wishlistSnapshot.val();
+        const wishlistRef = child(dbRef(rtdb), `wishlists/${this.currentUser.uid}`);
+        const snapshot = await get(wishlistRef);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
           const itemKey = Object.keys(data).find(key => data[key].productId === productId);
-          
-          if (itemKey) {
-            this.isWishlisted = true;
-            this.wishlistKey = itemKey;
-          } else {
-            this.isWishlisted = false;
-            this.wishlistKey = null;
-          }
+          this.isWishlisted = !!itemKey;
+          this.wishlistKey = itemKey || null;
         }
-      } catch (error) {
-        // Handle error silently
-      }
+      } catch (error) { console.error(error); }
     },
-
     async toggleWishlist() {
-      if (!this.product) return;
-      const wishlistRef = dbRef(rtdb, 'wishlists');
-
+      if (!this.currentUser) return alert("Please login first");
+      const userWishlistRef = dbRef(rtdb, `wishlists/${this.currentUser.uid}`);
       try {
         if (this.isWishlisted) {
-          await remove(child(wishlistRef, this.wishlistKey));
+          await remove(child(userWishlistRef, this.wishlistKey));
           this.isWishlisted = false;
           this.wishlistKey = null;
         } else {
-          const newWishlistRef = push(wishlistRef);
-          await set(newWishlistRef, {
+          const newWishRef = push(userWishlistRef);
+          await set(newWishRef, {
             productId: this.product.id,
             name: this.product.name,
             price: this.product.price,
@@ -208,20 +196,16 @@ export default {
             addedAt: new Date().toISOString()
           });
           this.isWishlisted = true;
-          this.wishlistKey = newWishlistRef.key;
+          this.wishlistKey = newWishRef.key;
         }
-      } catch (error) {
-        // Fail silently
-      }
+      } catch (error) { console.error(error); }
     },
-
     async handleAddToCart() {
-      if (!this.product) return;
+      if (!this.currentUser) return alert("Please login first");
       this.isAdding = true;
       try {
-        const cartRef = dbRef(rtdb, 'carts');
-        const newCartItemRef = push(cartRef);
-        await set(newCartItemRef, {
+        const userCartRef = dbRef(rtdb, `carts/${this.currentUser.uid}`);
+        await set(push(userCartRef), {
           productId: this.product.id,
           name: this.product.name,
           price: this.product.price,
@@ -231,22 +215,22 @@ export default {
           addedAt: new Date().toISOString()
         });
         this.showCartModal = true;
-      } catch (error) {
-        alert("Failed to add item to cart.");
-      } finally {
-        this.isAdding = false;
-      }
+      } catch (error) { alert("Error adding to cart"); }
+      finally { this.isAdding = false; }
     },
-
-    formatPrice(price) {
-      if (!price) return 'Rp0';
-      return `Rp${Number(price).toLocaleString('id-ID')}`;
+    async handleBuyNow() {
+      if (!this.currentUser) return this.$router.push('/login');
+      this.$router.push('/checkout');
     },
-
-    goToProduct(id) {
-      this.$router.push(`/products/${id}`);
-      window.scrollTo(0, 0);
-    }
+    formatPrice(price) { return `Rp${Number(price).toLocaleString('id-ID')}`; },
+    goToProduct(id) { this.$router.push(`/products/${id}`); }
+  },
+  mounted() {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      this.currentUser = user;
+      if (this.$route.params.id) this.loadProductData(this.$route.params.id);
+    });
   }
 }
 </script>
@@ -254,254 +238,76 @@ export default {
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
 
-.wishlist-btn i.active {
-  color: #ff4d4d;
-}
+.product-detail-page { background-color: #f9f9f9; padding: 40px 0; min-height: 100vh; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
 
-.btn-cart:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+/* LAYOUT GRID */
+.product-main-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
 
-.loading-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: #666;
+/* GALLERY & HOVER ZOOM */
+.main-image-wrapper { 
+  background: white; border-radius: 8px; overflow: hidden; 
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: zoom-in;
 }
+.main-image { width: 100%; display: block; transition: transform 0.5s ease; }
+.main-image-wrapper:hover .main-image { transform: scale(1.08); }
 
-.product-detail-page {
-  background-color: #f9f9f9;
-  padding: 40px 0;
-  min-height: 100vh;
-}
+/* INFO CARD */
+.info-card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.price-header { display: flex; justify-content: space-between; align-items: center; }
+.price { font-size: 28px; font-weight: bold; color: #333; }
+.wishlist-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #999; transition: transform 0.2s; }
+.wishlist-btn:hover { transform: scale(1.2); }
+.wishlist-btn i.active { color: #C41230; } /* Vans Red */
 
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
+.product-title { font-size: 18px; margin: 10px 0 5px; color: #444; font-weight: 700; }
+.product-subtitle { font-size: 14px; color: #888; margin-bottom: 20px; }
+.divider { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
 
-.product-main-layout {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 30px;
-  align-items: start;
-}
+.details-table { width: 100%; margin-top: 20px; font-size: 14px; }
+.details-table td { padding: 8px 0; color: #777; }
+.details-table td:last-child { text-align: right; color: #333; font-weight: 500; }
+.link-text { color: #C41230 !important; text-decoration: underline; cursor: pointer; }
 
-.main-image-wrapper {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+/* ACTION BUTTONS: Vans Style */
+.action-buttons { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
+.btn-buy { 
+  background-color: #C41230; color: white; border: none; padding: 14px; 
+  border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;
 }
+.btn-buy:hover { background-color: #000; transform: translateY(-2px); }
 
-.main-image {
-  width: 100%;
-  display: block;
+.btn-cart { 
+  background: white; color: #C41230; border: 1px solid #C41230; padding: 14px; 
+  border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;
 }
+.btn-cart:hover:not(:disabled) { background: #fce8e8; transform: translateY(-2px); }
 
-.info-card {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+/* SELLER CARD */
+.seller-card { 
+  background: white; margin-top: 20px; padding: 15px 24px; border-radius: 8px; 
+  display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
 }
+.seller-avatar img { width: 50px; height: 50px; border-radius: 50%; }
 
-.price-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* MINI CARD & HOVER ELEVASI */
+.other-products { margin-top: 60px; }
+.other-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.mini-card { 
+  background: white; border-radius: 8px; overflow: hidden; cursor: pointer; 
+  transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
+.mini-card:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+.mini-img-wrapper { aspect-ratio: 1/1; background: #f5f5f5; overflow: hidden; }
+.mini-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+.mini-card:hover .mini-img { transform: scale(1.1); }
 
-.price {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-}
+.mini-info { padding: 12px; }
+.mini-price { font-weight: bold; color: #C41230; font-size: 16px; }
 
-.wishlist-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #999;
-}
+/* SPINNER */
+.spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #C41230; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-.product-title {
-  font-size: 18px;
-  margin: 10px 0 5px;
-  color: #444;
-}
-
-.product-subtitle {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 20px;
-}
-
-.divider {
-  border: 0;
-  border-top: 1px solid #eee;
-  margin: 20px 0;
-}
-
-.description-section h3 {
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-.description-section p {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-}
-
-.details-table {
-  width: 100%;
-  margin-top: 20px;
-  font-size: 14px;
-  border-collapse: collapse;
-}
-
-.details-table td {
-  padding: 8px 0;
-  color: #777;
-}
-
-.details-table td:last-child {
-  text-align: right;
-  color: #333;
-  font-weight: 500;
-}
-
-.link-text {
-  color: #316b73 !important;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.action-buttons {
-  margin-top: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.btn-buy {
-  background-color: #009999;
-  color: white;
-  border: none;
-  padding: 14px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.btn-cart {
-  background: white;
-  color: #009999;
-  border: 1px solid #009999;
-  padding: 14px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.seller-card {
-  background: white;
-  margin-top: 20px;
-  padding: 15px 24px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.seller-avatar img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-}
-
-.seller-name {
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.seller-rating {
-  font-size: 12px;
-  color: #f1c40f;
-}
-
-.seller-rating span {
-  color: #888;
-  margin-left: 5px;
-}
-
-.other-products {
-  margin-top: 60px;
-}
-
-.section-title {
-  font-size: 22px;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.other-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.mini-card {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.mini-card img {
-  width: 100%;
-  height: 100%;
-  max-height: 200px;
-  object-fit: cover;
-}
-
-.mini-info {
-  padding: 12px;
-}
-
-.mini-price {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.mini-name {
-  font-size: 13px;
-  color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mini-meta {
-  font-size: 12px;
-  color: #999;
-  margin-top: 5px;
-}
-
-@media (max-width: 768px) {
-  .product-main-layout {
-    grid-template-columns: 1fr;
-  }
-  .other-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+@media (max-width: 768px) { .product-main-layout { grid-template-columns: 1fr; } .other-grid { grid-template-columns: repeat(2, 1fr); } }
 </style>

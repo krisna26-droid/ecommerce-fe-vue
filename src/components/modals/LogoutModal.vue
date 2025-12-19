@@ -3,24 +3,24 @@
     <div class="modal-container" @click.stop>
       <div class="modal-content">
         <div class="modal-header">
-          <h2 class="modal-title">Logout</h2>
+          <h2 class="modal-title">LOGOUT</h2>
           <button @click="closeModal" class="close-x-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M18 6L6 18M6 6l12 12"></path>
             </svg>
           </button>
         </div>
 
         <p class="modal-description left-align">
-          Are you sure want to logout from vintage?
+          Are you sure you want to logout from Vans?
         </p>
 
         <div class="modal-actions">
           <button class="btn-secondary" @click="closeModal">
-            Close
+            CLOSE
           </button>
           <button class="btn-danger" @click="handleLogout">
-            Logout
+            LOGOUT
           </button>
         </div>
       </div>
@@ -50,35 +50,34 @@ export default {
 </script>
 
 <style scoped>
-/* Style Dasar dari SuccessModal */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7); /* Overlay lebih gelap agar dramatis */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000; /* Ditingkatkan agar di atas navbar */
+  z-index: 10000;
 }
 
 .modal-container {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px; /* Sudut lebih kotak sesuai gaya Vans */
+  border: 2px solid #000; /* Border tegas industrial */
   max-width: 450px;
   width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden; /* Supaya bagian header/footer rapi */
+  box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.1); /* Bayangan streetwear tanpa blur */
+  overflow: hidden;
 }
 
 .modal-content {
-  text-align: left; /* Logout biasanya rata kiri */
-  padding: 0; /* Padding diatur per bagian */
+  text-align: left;
+  padding: 0;
 }
 
-/* Header Section */
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -89,65 +88,73 @@ export default {
 .close-x-btn {
   background: none;
   border: none;
-  color: #999;
+  color: #000;
   cursor: pointer;
   padding: 0;
+  transition: color 0.2s;
 }
 
 .close-x-btn:hover {
-  color: #333;
+  color: #C41230; /* Hover ke Vans Red */
 }
 
 .modal-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: 22px;
+  font-weight: 900; /* Extra bold ala "Off The Wall" */
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
 }
 
 .modal-description {
-  font-size: 16px;
-  color: #666;
-  line-height: 1.6;
+  font-size: 15px;
+  color: #444;
+  line-height: 1.5;
   padding: 0 30px 30px 30px;
   margin: 0;
+  font-weight: 500;
 }
 
-/* Actions Area */
 .modal-actions {
-  background-color: #f9fafb; /* Area abu-abu bawah sesuai desain */
+  background-color: #f3f3f3;
   padding: 16px 30px;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  border-top: 1px solid #eee;
 }
 
-/* Button Styles */
+/* Button Styles: Boxy & Bold */
 .btn-secondary, .btn-danger {
   padding: 10px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  border: 2px solid #000;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-secondary {
-  background-color: #e5e7eb;
-  color: #4b5563;
+  background-color: #fff;
+  color: #000;
 }
 
 .btn-secondary:hover {
-  background-color: #d1d5db;
+  background-color: #000;
+  color: #fff;
 }
 
 .btn-danger {
-  background-color: #dc2626; /* Warna merah logout */
+  background-color: #C41230; /* Vans Red */
   color: white;
+  border-color: #C41230;
 }
 
 .btn-danger:hover {
-  background-color: #b91c1c;
+  background-color: #a00e26;
+  border-color: #a00e26;
 }
 
 .btn-danger:active, .btn-secondary:active {

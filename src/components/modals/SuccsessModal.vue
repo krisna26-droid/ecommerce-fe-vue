@@ -2,22 +2,18 @@
   <div v-if="isVisible" class="modal-overlay" @click="closeModal">
     <div class="modal-container" @click.stop>
       <div class="modal-content">
-        <!-- Icon/Image -->
         <div class="modal-icon">
-          <img src="@/assets/images/hero/modal-logo.png" alt="Success" />
+          <img src="@/assets/images/hero/SucsessModal.png" alt="Success" />
         </div>
 
-        <!-- Title -->
-        <h2 class="modal-title">Successfully Register</h2>
+        <h2 class="modal-title">SUCCESSFULLY REGISTERED</h2>
 
-        <!-- Description -->
         <p class="modal-description">
-          Thank you for register at vintage. Start find your favorite pre-loved product here.
+          Thank you for registering at Vans. Start finding your favorite footwear and apparel here.
         </p>
 
-        <!-- Button -->
         <button class="modal-button" @click="goToHomePage">
-          Go to Home Page
+          GO TO HOME PAGE
         </button>
       </div>
     </div>
@@ -52,20 +48,21 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7); /* Overlay lebih gelap agar dramatis */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 10000; /* Pastikan di atas elemen apa pun */
 }
 
 .modal-container {
   background: white;
-  border-radius: 16px;
+  border-radius: 4px; /* Sudut tajam/boxy sesuai gaya Vans */
+  border: 2px solid #000; /* Border tegas industrial */
   max-width: 500px;
   width: 90%;
   padding: 40px 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.1); /* Bayangan streetwear tanpa blur */
 }
 
 .modal-content {
@@ -82,34 +79,40 @@ export default {
 }
 
 .modal-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: 26px;
+  font-weight: 900; /* Extra bold ala Vans */
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
   margin-bottom: 16px;
 }
 
 .modal-description {
-  font-size: 16px;
-  color: #666;
+  font-size: 15px;
+  color: #444;
   line-height: 1.6;
   margin-bottom: 30px;
+  font-weight: 500;
 }
 
 .modal-button {
   width: 100%;
   padding: 16px 24px;
-  background-color: #4a9b9b;
+  background-color: #C41230; /* Vans Red Utama */
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: 4px; /* Sudut tajam konsisten */
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .modal-button:hover {
-  background-color: #3d8585;
+  background-color: #000; /* Berubah jadi hitam saat hover */
+  transform: translateY(-2px);
 }
 
 .modal-button:active {

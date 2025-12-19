@@ -1,60 +1,57 @@
 <template>
-  <footer>
+  <footer class="vans-footer">
+    <div class="checkerboard-pattern"></div>
+
     <div class="footer-container">
-      
       <div class="footer-column">
-        <h4>Vintage</h4>
+        <h4>Vans</h4>
         <ul>
-          <li><a href="#">About Us</a></li>
+          <li><a href="#">About Vans</a></li>
           <li><a href="#">Sustainability</a></li>
-          <li><a href="#">Blog</a></li>
-          <li><a href="#">Advertising</a></li>
+          <li><a href="#">News</a></li>
+          <li><a href="#">Customs</a></li>
         </ul>
         <div class="social-icons">
-          <a href="#" aria-label="WhatsApp">
-            <i class="fa-brands fa-whatsapp"></i>
-          </a>
-          <a href="#" aria-label="YouTube">
-            <i class="fa-brands fa-youtube"></i>
-          </a>
-          <a href="#" aria-label="LinkedIn">
-            <i class="fa-brands fa-linkedin-in"></i>
-          </a>
-          <a href="#" aria-label="Instagram">
-            <i class="fa-brands fa-instagram"></i>
-          </a>
+          <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
         </div>
       </div>
 
       <div class="footer-column">
         <h4>Discover</h4>
         <ul>
-          <li><a href="#">How it works</a></li>
-          <li><a href="#">Help center</a></li>
-          <li><a href="#">Infoboard</a></li>
-          <li><a href="#">Mobile apps</a></li>
+          <li><a href="#">Store Locator</a></li>
+          <li><a href="#">Affiliate Program</a></li>
+          <li><a href="#">Vans Family</a></li>
+          <li><a href="#">Events</a></li>
         </ul>
       </div>
 
       <div class="footer-column">
         <h4>Help</h4>
         <ul>
-          <li><a href="#">Help center</a></li>
-          <li><a href="#">Buying</a></li>
-          <li><a href="#">Trust and Safety</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Order Status</a></li>
+          <li><a href="#">Returns & Exchanges</a></li>
+          <li><a href="#">Shipping Information</a></li>
         </ul>
       </div>
 
       <div class="footer-column">
-        <h4>Community</h4>
+        <h4>Support</h4>
         <ul>
-          <li><a href="#">Community</a></li>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Size Charts</a></li>
+          <li><a href="#">Terms of Use</a></li>
+          <li><a href="#">Privacy Policy</a></li>
         </ul>
       </div>
     </div>
     
     <div class="footer-bottom">
-      <p>© Vintage, 2023</p>
+      <p>© Vans Off The Wall, 2023</p>
     </div>
   </footer>
 </template>
@@ -66,27 +63,45 @@ export default {
 </script>
 
 <style scoped>
-/* Memanggil library Font Awesome agar ikon muncul */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
 
-footer {
-  background-color: #316b73;
+.vans-footer {
+  /* Berubah dari Teal ke Hitam Vans */
+  background-color: #000000;
   color: white;
-  padding: 40px 80px;
-  font-family: Arial, sans-serif;
+  padding: 0 0 40px 0; /* Padding atas diatur 0 karena ada checkerboard */
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Pola Checkerboard Ikonik Vans */
+.checkerboard-pattern {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 40px;
+  background-image: 
+    linear-gradient(45deg, #fff 25%, transparent 25%), 
+    linear-gradient(-45deg, #fff 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #fff 75%), 
+    linear-gradient(-45deg, transparent 75%, #fff 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px 6px, 6px 0;
+  background-color: #000;
+  opacity: 0.8;
 }
 
 .footer-container {
   display: grid;
-  /* Menggunakan auto-fit agar footer responsif di layar kecil */
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 40px;
+  padding: 0 80px;
 }
 
 .footer-column h4 {
-  margin-bottom: 15px;
-  font-size: 18px;
-  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .footer-column ul {
@@ -95,58 +110,55 @@ footer {
 }
 
 .footer-column ul li {
-  margin: 8px 0;
+  margin: 10px 0;
 }
 
 .footer-column ul li a {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
+  transition: color 0.2s;
 }
 
 .footer-column ul li a:hover {
-  text-decoration: underline;
-  color: white;
+  /* Hover menggunakan Vans Red */
+  color: #C41230;
 }
 
-/* Perbaikan khusus Ikon agar terlihat */
 .social-icons {
-  margin-top: 20px;
+  margin-top: 25px;
   display: flex;
-  gap: 15px;
+  gap: 20px;
 }
 
 .social-icons a {
   color: white;
-  font-size: 22px; /* Ukuran ikon */
-  text-decoration: none;
-  display: inline-block;
+  font-size: 20px;
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .social-icons a:hover {
-  transform: translateY(-3px); /* Efek melayang */
+  transform: scale(1.2);
+  color: #C41230; /* Hover Red */
 }
-
-/* Warna spesifik saat hover (opsional) */
-.social-icons a:hover .fa-whatsapp { color: #25D366; }
-.social-icons a:hover .fa-youtube { color: #FF0000; }
-.social-icons a:hover .fa-linkedin-in { color: #0077B5; }
-.social-icons a:hover .fa-instagram { color: #E4405F; }
 
 .footer-bottom {
   text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  margin-top: 40px;
-  padding-top: 20px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 40px 80px 0 80px;
+  padding-top: 25px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* Responsivitas untuk mobile */
 @media (max-width: 768px) {
-  footer {
-    padding: 40px 20px;
+  .footer-container {
+    padding: 0 20px;
+  }
+  .footer-bottom {
+    margin: 40px 20px 0 20px;
   }
 }
 </style>
