@@ -17,8 +17,8 @@
         />
       </div>
       <div class="avatar-info">
-        <p class="upload-text">Ganti foto profil Anda</p>
-        <p class="upload-hint">Format: JPG, PNG. Maksimal 2MB.</p>
+        <p class="upload-text">Change your profile photo</p>
+        <p class="upload-hint">Format: JPG, PNG. Max 2MB.</p>
       </div>
     </div>
 
@@ -26,29 +26,29 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Full Name</label>
-          <input type="text" v-model="form.fullName" placeholder="Masukkan nama lengkap" required />
+          <input type="text" v-model="form.fullName" placeholder="Enter your full name" required />
         </div>
 
         <div class="form-group">
           <label>Username</label>
-          <input type="text" v-model="form.username" placeholder="Masukkan username" required />
+          <input type="text" v-model="form.username" placeholder="Enter username" required />
         </div>
 
         <div class="form-group">
           <label>Email Address</label>
-          <input type="email" v-model="form.email" placeholder="Masukkan alamat email" disabled />
-          <small style="color: #6b7280;">Email tidak dapat diubah</small>
+          <input type="email" v-model="form.email" placeholder="Enter email address" disabled />
+          <small class="disabled-hint">Email cannot be changed</small>
         </div>
 
         <div class="form-group">
           <label>Phone Number</label>
-          <input type="text" v-model="form.phone" placeholder="Masukkan nomor telepon" />
+          <input type="text" v-model="form.phone" placeholder="Enter phone number" />
         </div>
       </div>
 
       <div class="form-actions">
         <button type="submit" class="btn-update" :disabled="loading">
-          {{ loading ? 'Updating...' : 'Update Profile' }}
+          {{ loading ? 'UPDATING...' : 'UPDATE PROFILE' }}
         </button>
       </div>
     </form>
@@ -67,7 +67,8 @@ export default {
       loading: false,
       previewImage: null,
       currentUser: null,
-      userAvatar: "https://ui-avatars.com/api/?name=User&background=0d9488&color=fff",
+      // Avatar default menggunakan warna Vans Red (#C41230)
+      userAvatar: "https://ui-avatars.com/api/?name=User&background=C41230&color=fff",
       form: {
         fullName: "",
         username: "",
@@ -94,7 +95,6 @@ export default {
           this.form = { ...data };
           if (data.avatar) this.userAvatar = data.avatar;
         } else {
-          // Fallback jika data di DB belum ada
           this.form.email = this.currentUser.email;
         }
       } catch (error) {
@@ -107,7 +107,7 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          this.previewImage = e.target.result; // Base64 string untuk demo
+          this.previewImage = e.target.result;
         };
         reader.readAsDataURL(file);
       }
@@ -124,16 +124,13 @@ export default {
           updatedAt: new Date().toISOString()
         };
 
-        // 1. Simpan ke Firebase Realtime Database
         await set(dbRef(rtdb, `users/${this.currentUser.uid}`), updatedData);
-
-        // 2. Simpan ke LocalStorage untuk Header
         localStorage.setItem("user", JSON.stringify(updatedData));
         
-        alert("Profil berhasil diperbarui!");
+        alert("Profile successfully updated!");
         window.location.reload(); 
       } catch (error) {
-        alert("Gagal memperbarui profil: " + error.message);
+        alert("Failed to update profile: " + error.message);
       } finally {
         this.loading = false;
       }
@@ -143,22 +140,85 @@ export default {
 </script>
 
 <style scoped>
-/* Style Anda tetap sama */
-.section-title { font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 32px; }
+.section-title { 
+  font-size: 20px; 
+  font-weight: 800; 
+  color: #000; 
+  text-transform: uppercase; 
+  margin-bottom: 32px; 
+}
+
 .avatar-section { display: flex; align-items: center; gap: 24px; margin-bottom: 40px; }
 .avatar-wrapper { position: relative; width: 100px; height: 100px; }
-.profile-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb; }
-.upload-btn { position: absolute; bottom: 0; right: 0; background: #0d9488; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid white; }
-.upload-text { font-weight: 600; font-size: 15px; color: #111827; }
-.upload-hint { font-size: 13px; color: #6b7280; }
+
+.profile-img { 
+  width: 100%; height: 100%; 
+  border-radius: 4px; /* Boxy style */
+  object-fit: cover; 
+  border: 2px solid #000; 
+}
+
+.upload-btn { 
+  position: absolute; bottom: -8px; right: -8px; 
+  background: #C41230; /* Vans Red */
+  color: white; 
+  width: 32px; height: 32px; 
+  border-radius: 4px; 
+  display: flex; align-items: center; justify-content: center; 
+  cursor: pointer; border: 2px solid #000; 
+}
+
+.upload-text { font-weight: 700; font-size: 15px; color: #000; }
+.upload-hint { font-size: 13px; color: #666; font-weight: 500; }
+
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
-.form-group label { font-size: 14px; font-weight: 500; color: #374151; }
-.form-group input { padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; }
-.form-group input:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); }
+.form-group label { font-size: 13px; font-weight: 800; color: #000; text-transform: uppercase; }
+
+.form-group input { 
+  padding: 12px 16px; 
+  border: 2px solid #000; /* Bold industrial border */
+  border-radius: 4px; 
+  font-size: 14px; 
+  font-weight: 600;
+  transition: all 0.2s; 
+}
+
+.form-group input:focus { 
+  outline: none; 
+  border-color: #C41230; /* Red focus */
+  box-shadow: 4px 4px 0px rgba(196, 18, 48, 0.1); 
+}
+
+.form-group input:disabled {
+  background-color: #f3f3f3;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.disabled-hint { color: #9ca3af; font-weight: 600; font-size: 11px; }
+
 .form-actions { margin-top: 40px; display: flex; justify-content: flex-end; }
-.btn-update { background-color: #0d9488; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s; }
-.btn-update:hover { background-color: #0f766e; }
-.btn-update:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+.btn-update { 
+  background-color: #C41230; /* Vans Red */
+  color: white; 
+  padding: 14px 28px; 
+  border-radius: 4px; 
+  font-weight: 800; 
+  text-transform: uppercase;
+  border: none; 
+  cursor: pointer; 
+  transition: all 0.3s; 
+}
+
+.btn-update:hover:not(:disabled) { 
+  background-color: #000; 
+  transform: translateY(-2px);
+}
+
+.btn-update:disabled { background-color: #ccc; cursor: not-allowed; }
+
 @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
 </style>

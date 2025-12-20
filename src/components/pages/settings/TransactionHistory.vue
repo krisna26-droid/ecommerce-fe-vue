@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-history">
-    <h2 class="section-header">My Order</h2>
+    <h2 class="section-header">MY ORDER</h2>
 
     <div v-if="orders.length === 0 && !isLoading" class="empty-orders">
       <div class="empty-illustration">
@@ -11,8 +11,8 @@
         </div>
       </div>
       <h2 class="empty-title">No orders yet</h2>
-      <p class="empty-description">When you buy an item, your order about it will appear here.</p>
-      <router-link to="/products" class="btn-shop">Shop now</router-link>
+      <p class="empty-description">When you buy Vans classics, your order details will appear here.</p>
+      <router-link to="/products" class="btn-shop">SHOP NOW</router-link>
     </div>
 
     <div v-else-if="orders.length > 0" class="orders-list">
@@ -20,9 +20,9 @@
         <div class="order-header">
           <div class="header-left">
             <i class="fa-solid fa-bag-shopping shopping-icon"></i>
-            <span class="activity-label">Shopping</span>
+            <span class="activity-label">SHOPPING</span>
             <span class="order-date">{{ order.date }}</span>
-            <span class="status-badge">Done</span>
+            <span class="status-badge">DONE</span>
           </div>
           <span class="order-number">{{ order.orderId }}</span>
         </div>
@@ -33,7 +33,7 @@
             <div class="product-details">
               <h3 class="product-name">{{ order.displayItem.name }}</h3>
               <p class="product-qty">1 product x {{ formatPrice(order.displayItem.price) }}</p>
-              <p class="product-meta">{{ order.displayItem.size }}</p>
+              <p class="product-meta">Size: {{ order.displayItem.size }}</p>
               <p v-if="order.moreItems > 0" class="more-products">+ {{ order.moreItems }} more products</p>
             </div>
           </div>
@@ -44,7 +44,7 @@
         </div>
 
         <div class="order-actions">
-          <button class="btn-buy-again" @click="$router.push('/products')">Buy Again</button>
+          <button class="btn-buy-again" @click="$router.push('/products')">BUY AGAIN</button>
         </div>
       </div>
     </div>
@@ -78,17 +78,15 @@ export default {
         const snapshot = await get(child(dbRef(rtdb), `history/${user.uid}`));
         if (snapshot.exists()) {
           const data = snapshot.val();
-          // Mapping data dari Firebase object ke array
           this.orders = Object.keys(data).map(key => {
             const orderData = data[key];
             return {
               id: key,
               ...orderData,
-              // Ambil item pertama untuk ditampilkan sebagai ringkasan
               displayItem: orderData.items[0],
               moreItems: orderData.items.length - 1
             };
-          }).reverse(); // Agar pesanan terbaru muncul di paling atas
+          }).reverse();
         }
       } catch (error) {
         console.error("Error fetching history:", error);
@@ -111,35 +109,135 @@ export default {
 </script>
 
 <style scoped>
-/* Style Anda tetap sama */
 .transaction-history { padding-bottom: 20px; }
-.section-header { font-size: 14px; color: #6b7280; font-weight: 500; margin-bottom: 20px; }
+
+.section-header { 
+  font-size: 14px; 
+  color: #666; 
+  font-weight: 800; 
+  text-transform: uppercase; 
+  margin-bottom: 24px; 
+  letter-spacing: 1px;
+}
+
+/* EMPTY STATE */
 .empty-orders { text-align: center; padding: 60px 0; }
 .empty-illustration { display: flex; justify-content: center; margin-bottom: 24px; }
-.shopping-bag-icon { width: 100px; height: 100px; background: #009999; border-radius: 20px; position: relative; display: flex; align-items: center; justify-content: center; }
+.shopping-bag-icon { 
+  width: 100px; height: 100px; 
+  background: #C41230; /* Vans Red */
+  border-radius: 4px; 
+  position: relative; display: flex; align-items: center; justify-content: center;
+  border: 3px solid #000;
+}
 .bag-eyes { width: 40px; height: 10px; display: flex; justify-content: space-between; }
 .bag-eyes::before, .bag-eyes::after { content: ''; width: 10px; height: 10px; background: white; border-radius: 50%; }
-.empty-title { font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 12px; }
-.empty-description { font-size: 14px; color: #6b7280; margin-bottom: 30px; }
-.btn-shop { background: #009999; color: white; padding: 12px 40px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; }
-.order-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-.order-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #f3f4f6; margin-bottom: 15px; }
-.header-left { display: flex; align-items: center; gap: 10px; font-size: 12px; }
-.shopping-icon { color: #009999; }
-.activity-label { font-weight: 700; color: #111827; }
-.order-date { color: #6b7280; }
-.status-badge { background: #ecfdf5; color: #059669; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
-.order-number { font-size: 12px; color: #6b7280; }
+
+.empty-title { 
+  font-size: 24px; 
+  font-weight: 800; 
+  color: #000; 
+  text-transform: uppercase;
+  margin-bottom: 12px; 
+}
+
+.empty-description { font-size: 14px; color: #444; margin-bottom: 30px; font-weight: 500; }
+
+.btn-shop { 
+  background: #000; 
+  color: white; 
+  padding: 14px 40px; 
+  border-radius: 4px; 
+  text-decoration: none; 
+  font-weight: 800; 
+  text-transform: uppercase;
+  display: inline-block; 
+  transition: background 0.3s;
+}
+.btn-shop:hover { background: #C41230; }
+
+/* ORDER CARD: Boxy Style */
+.order-card { 
+  border: 2px solid #000; 
+  border-radius: 4px; 
+  padding: 20px; 
+  margin-bottom: 20px; 
+  box-shadow: 6px 6px 0px rgba(0,0,0,0.05);
+}
+
+.order-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding-bottom: 15px; 
+  border-bottom: 1px solid #eee; 
+  margin-bottom: 15px; 
+}
+
+.header-left { display: flex; align-items: center; gap: 12px; font-size: 12px; }
+.shopping-icon { color: #C41230; }
+.activity-label { font-weight: 800; color: #000; text-transform: uppercase; }
+.order-date { color: #666; font-weight: 600; }
+
+.status-badge { 
+  background: #000; 
+  color: #fff; 
+  padding: 4px 10px; 
+  border-radius: 4px; 
+  font-weight: 800; 
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.order-number { font-size: 11px; color: #888; font-weight: 700; }
+
 .order-body { display: flex; justify-content: space-between; align-items: flex-start; }
 .product-info { display: flex; gap: 15px; }
-.product-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
-.product-name { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 4px; }
-.product-qty, .product-meta, .more-products { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
-.price-summary { text-align: right; border-left: 1px solid #f3f4f6; padding-left: 20px; }
-.total-label { font-size: 12px; color: #6b7280; }
-.total-value { font-size: 16px; font-weight: 700; color: #111827; }
+.product-thumb { 
+  width: 70px; height: 70px; 
+  object-fit: cover; 
+  border-radius: 4px; 
+  border: 1px solid #eee; 
+}
+
+.product-name { 
+  font-size: 15px; 
+  font-weight: 800; 
+  color: #000; 
+  text-transform: uppercase;
+  margin-bottom: 4px; 
+}
+
+.product-qty, .product-meta, .more-products { font-size: 12px; color: #444; font-weight: 600; margin-bottom: 2px; }
+.more-products { color: #C41230; font-weight: 800; }
+
+.price-summary { text-align: right; border-left: 2px solid #eee; padding-left: 20px; }
+.total-label { font-size: 11px; color: #666; font-weight: 700; text-transform: uppercase; }
+.total-value { font-size: 18px; font-weight: 900; color: #C41230; }
+
 .order-actions { display: flex; justify-content: flex-end; margin-top: 15px; }
-.btn-buy-again { background: #009999; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; }
-.spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #009999; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+
+.btn-buy-again { 
+  background: #000; 
+  color: white; 
+  border: none; 
+  padding: 10px 24px; 
+  border-radius: 4px; 
+  font-weight: 800; 
+  text-transform: uppercase;
+  font-size: 12px; 
+  cursor: pointer; 
+  transition: background 0.3s;
+}
+.btn-buy-again:hover { background: #C41230; }
+
+.spinner { 
+  width: 35px; height: 35px; 
+  border: 4px solid #f3f3f3; 
+  border-top: 4px solid #C41230; 
+  border-radius: 50%; 
+  animation: spin 1s linear infinite; 
+  margin: 0 auto 10px; 
+}
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>

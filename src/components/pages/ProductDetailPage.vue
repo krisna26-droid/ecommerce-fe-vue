@@ -54,7 +54,9 @@
             </table>
 
             <div class="action-buttons">
-              <button class="btn-buy" @click="handleBuyNow">Buy Now</button>
+              <button class="btn-buy" :disabled="isAdding" @click="handleBuyNow">
+                {{ isAdding ? 'Processing...' : 'Buy Now' }}
+              </button>
               <button class="btn-cart" :disabled="isAdding" @click="handleAddToCart">
                 {{ isAdding ? 'Adding...' : 'Add to Cart' }}
               </button>
@@ -136,7 +138,6 @@ export default {
         .slice(0, 4);
     }
   },
-  // WATCHER: Memastikan data ter-update saat navigasi antar produk
   watch: {
     '$route.params.id': {
       handler(newId) {
@@ -149,6 +150,9 @@ export default {
     }
   },
   methods: {
+    formatPrice(price) { return `Rp${Number(price).toLocaleString('id-ID')}`; },
+    goToProduct(id) { this.$router.push(`/products/${id}`); },
+
     async loadProductData(productId) {
       this.isLoading = true;
       try {
@@ -166,6 +170,7 @@ export default {
       } catch (error) { console.error(error); }
       finally { this.isLoading = false; }
     },
+
     async checkWishlistStatus(productId) {
       try {
         const wishlistRef = child(dbRef(rtdb), `wishlists/${this.currentUser.uid}`);
@@ -178,6 +183,7 @@ export default {
         }
       } catch (error) { console.error(error); }
     },
+
     async toggleWishlist() {
       if (!this.currentUser) return alert("Please login first");
       const userWishlistRef = dbRef(rtdb, `wishlists/${this.currentUser.uid}`);
@@ -200,30 +206,51 @@ export default {
         }
       } catch (error) { console.error(error); }
     },
+
+    // Fungsi Internal untuk Push data ke Cart Firebase
+    async addToFirebaseCart() {
+      const userCartRef = dbRef(rtdb, `carts/${this.currentUser.uid}`);
+      await push(userCartRef, {
+        productId: this.product.id,
+        name: this.product.name,
+        price: this.product.price,
+        image: this.product.image,
+        size: this.product.size,
+        qty: 1,
+        addedAt: new Date().toISOString()
+      });
+    },
+
     async handleAddToCart() {
       if (!this.currentUser) return alert("Please login first");
       this.isAdding = true;
       try {
-        const userCartRef = dbRef(rtdb, `carts/${this.currentUser.uid}`);
-        await set(push(userCartRef), {
-          productId: this.product.id,
-          name: this.product.name,
-          price: this.product.price,
-          image: this.product.image,
-          size: this.product.size,
-          qty: 1,
-          addedAt: new Date().toISOString()
-        });
+        await this.addToFirebaseCart();
         this.showCartModal = true;
-      } catch (error) { alert("Error adding to cart"); }
-      finally { this.isAdding = false; }
+      } catch (error) { 
+        alert("Error adding to cart"); 
+      } finally { 
+        this.isAdding = false; 
+      }
     },
+
     async handleBuyNow() {
-      if (!this.currentUser) return this.$router.push('/login');
-      this.$router.push('/checkout');
-    },
-    formatPrice(price) { return `Rp${Number(price).toLocaleString('id-ID')}`; },
-    goToProduct(id) { this.$router.push(`/products/${id}`); }
+      if (!this.currentUser) {
+        alert("Please login to proceed with purchase");
+        return this.$router.push('/login');
+      }
+      this.isAdding = true;
+      try {
+        // Masukkan ke keranjang Firebase terlebih dahulu
+        await this.addToFirebaseCart();
+        // Langsung arahkan ke halaman checkout
+        this.$router.push('/checkout');
+      } catch (error) { 
+        alert("Failed to process Buy Now"); 
+      } finally { 
+        this.isAdding = false; 
+      }
+    }
   },
   mounted() {
     const auth = getAuth();
@@ -275,13 +302,15 @@ export default {
   background-color: #C41230; color: white; border: none; padding: 14px; 
   border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;
 }
-.btn-buy:hover { background-color: #000; transform: translateY(-2px); }
+.btn-buy:hover:not(:disabled) { background-color: #000; transform: translateY(-2px); }
+.btn-buy:disabled { background-color: #ccc; cursor: not-allowed; }
 
 .btn-cart { 
   background: white; color: #C41230; border: 1px solid #C41230; padding: 14px; 
   border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;
 }
 .btn-cart:hover:not(:disabled) { background: #fce8e8; transform: translateY(-2px); }
+.btn-cart:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; }
 
 /* SELLER CARD */
 .seller-card { 
@@ -306,6 +335,7 @@ export default {
 .mini-price { font-weight: bold; color: #C41230; font-size: 16px; }
 
 /* SPINNER */
+.loading-state { text-align: center; padding-top: 100px; }
 .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #C41230; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 

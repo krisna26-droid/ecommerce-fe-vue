@@ -11,8 +11,9 @@ import CartPage from '../components/pages/CartPage.vue'
 import WishlistPage from '../components/pages/WishlistPage.vue'
 import SeederTool from '../components/admin/SeederTool.vue'
 
-// Import Halaman Konfirmasi Pesanan
-import OrderConfirmationPage from '../components/pages/OrderConfirmationPage.vue'
+// Import Alur Checkout Baru
+import CheckoutPage from '../components/pages/CheckoutPage.vue' // Halaman Input Alamat/Pembayaran
+import OrderConfirmationPage from '../components/pages/OrderConfirmationPage.vue' // Halaman Review Akhir
 
 // Import Komponen Settings
 import SettingsLayout from '../components/pages/settings/SettingsLayout.vue'
@@ -57,7 +58,7 @@ const routes = [
     path: '/cart',
     name: 'cart',
     component: CartPage,
-    meta: { requiresAuth: true } // Hanya untuk user login
+    meta: { requiresAuth: true }
   },
   {
     path: '/wishlist',
@@ -65,15 +66,24 @@ const routes = [
     component: WishlistPage,
     meta: { requiresAuth: true }
   },
+  
+  // --- ALUR CHECKOUT TERINTEGRASI ---
   {
-    // Alur baru sebelum modal sukses
+    // Tahap 1: Isi Alamat & Pilih Pembayaran
     path: '/checkout', 
+    name: 'checkout',
+    component: CheckoutPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    // Tahap 2: Review Akhir sebelum Order Now
+    path: '/checkout/confirm', 
     name: 'order-confirmation',
     component: OrderConfirmationPage,
     meta: { requiresAuth: true }
   },
-  
-  // Rute Settings dengan Sidebar Terintegrasi
+  // ----------------------------------
+
   {
     path: '/settings',
     component: SettingsLayout,
@@ -91,7 +101,6 @@ const routes = [
         component: ChangePassword,
       },
       {
-        // Rute yang disarankan pada modal sukses checkout
         path: 'history',
         name: 'transaction-history',
         component: TransactionHistory,
@@ -104,15 +113,10 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior() {
-    // Selalu scroll ke atas saat pindah halaman
     return { top: 0 }
   }
 })
 
-/**
- * Navigation Guard untuk Keamanan
- * Memastikan user tidak bisa mengakses Cart/Settings tanpa login
- */
 router.beforeEach((to, from, next) => {
   const auth = getAuth()
   
@@ -121,10 +125,8 @@ router.beforeEach((to, from, next) => {
     const guestOnly = to.matched.some(record => record.meta.guestOnly)
 
     if (requiresAuth && !user) {
-      // Jika butuh login tapi belum login
       next('/login')
     } else if (guestOnly && user) {
-      // Jika sudah login tapi mencoba ke halaman Login/Register
       next('/')
     } else {
       next()

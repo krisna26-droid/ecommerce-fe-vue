@@ -9,7 +9,7 @@
           <input 
             :type="showOld ? 'text' : 'password'" 
             v-model="form.oldPassword" 
-            placeholder="Old password"
+            placeholder="Enter old password"
             required
           />
           <button type="button" class="toggle-eye" @click="showOld = !showOld" tabindex="-1">
@@ -24,7 +24,7 @@
           <input 
             :type="showNew ? 'text' : 'password'" 
             v-model="form.newPassword" 
-            placeholder="New password" 
+            placeholder="Enter new password" 
             required
           />
           <button type="button" class="toggle-eye" @click="showNew = !showNew" tabindex="-1">
@@ -39,7 +39,7 @@
           <input 
             :type="showConfirm ? 'text' : 'password'" 
             v-model="form.confirmPassword" 
-            placeholder="Confirmation password" 
+            placeholder="Confirm new password" 
             required
           />
           <button type="button" class="toggle-eye" @click="showConfirm = !showConfirm" tabindex="-1">
@@ -50,7 +50,7 @@
 
       <div class="form-actions">
         <button type="submit" class="btn-save" :disabled="loading">
-          {{ loading ? 'Saving...' : 'Save Changes' }}
+          {{ loading ? 'SAVING...' : 'SAVE CHANGES' }}
         </button>
       </div>
     </form>
@@ -58,7 +58,6 @@
 </template>
 
 <script>
-// Menggunakan library resmi Firebase Auth
 import { 
   getAuth, 
   updatePassword, 
@@ -83,15 +82,13 @@ export default {
   },
   methods: {
     async handleSave() {
-      // 1. Validasi kecocokan password baru
       if (this.form.newPassword !== this.form.confirmPassword) {
-        alert("Konfirmasi password baru tidak cocok!");
+        alert("Confirmation password does not match!");
         return;
       }
 
-      // 2. Validasi panjang password
       if (this.form.newPassword.length < 6) {
-        alert("Password baru minimal harus 6 karakter.");
+        alert("New password must be at least 6 characters.");
         return;
       }
 
@@ -100,30 +97,19 @@ export default {
       const user = auth.currentUser;
 
       try {
-        // 3. Re-autentikasi (WAJIB di Firebase sebelum ganti password sensitif)
-        // Ini membuktikan ke server bahwa user saat ini tahu password lamanya
         const credential = EmailAuthProvider.credential(user.email, this.form.oldPassword);
-        
         await reauthenticateWithCredential(user, credential);
-
-        // 4. Update password di server Firebase
         await updatePassword(user, this.form.newPassword);
 
-        alert("Password berhasil diperbarui! Silahkan gunakan password baru untuk login berikutnya.");
-        
-        // Reset form setelah berhasil
+        alert("Password successfully updated!");
         this.form = { oldPassword: "", newPassword: "", confirmPassword: "" };
         
       } catch (error) {
         console.error("Update password error:", error);
-        
-        // Handling error spesifik Firebase
         if (error.code === 'auth/wrong-password') {
-          alert("Password lama yang Anda masukkan salah.");
-        } else if (error.code === 'auth/too-many-requests') {
-          alert("Terlalu banyak percobaan gagal. Akun sementara terkunci, coba lagi nanti.");
+          alert("The old password you entered is incorrect.");
         } else {
-          alert("Gagal memperbarui password: " + error.message);
+          alert("Failed to update password: " + error.message);
         }
       } finally {
         this.loading = false;
@@ -136,9 +122,11 @@ export default {
 <style scoped>
 .section-title {
   font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
+  font-weight: 800; /* Extra bold ala Vans */
+  color: #666;
+  text-transform: uppercase;
   margin-bottom: 24px;
+  letter-spacing: 1px;
 }
 
 .password-form {
@@ -155,9 +143,10 @@ export default {
 }
 
 .form-group label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+  color: #000;
+  text-transform: uppercase;
 }
 
 .input-wrapper {
@@ -169,17 +158,18 @@ export default {
   width: 100%;
   padding: 12px 16px;
   padding-right: 45px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 2px solid #000; /* Bold industrial border */
+  border-radius: 4px; /* Boxy style */
   font-size: 14px;
-  color: #374151;
+  font-weight: 600;
+  color: #000;
   transition: all 0.2s;
 }
 
 .input-wrapper input:focus {
   outline: none;
-  border-color: #0d9488; /* Warna Teal sesuai desain profile & login */
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+  border-color: #C41230; /* Vans Red focus */
+  box-shadow: 4px 4px 0px rgba(196, 18, 48, 0.1); 
 }
 
 .toggle-eye {
@@ -189,7 +179,7 @@ export default {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #6b7280;
+  color: #000;
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -204,23 +194,26 @@ export default {
 }
 
 .btn-save {
-  background-color: #0d9488; /* Konsisten dengan skema warna Vintage */
+  background-color: #C41230; /* Vans Red Utama */
   color: white;
-  padding: 10px 24px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
+  padding: 12px 28px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   border: none;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s;
 }
 
-.btn-save:hover {
-  background-color: #0f766e;
+.btn-save:hover:not(:disabled) {
+  background-color: #000;
+  transform: translateY(-2px);
 }
 
 .btn-save:disabled {
-  background-color: #9ca3af;
+  background-color: #ccc;
   cursor: not-allowed;
 }
 </style>
