@@ -1,10 +1,11 @@
 <template>
-  <div>
-    <!-- Header & Footer hanya muncul jika BUKAN halaman auth -->
+  <div id="app">
     <HeaderComponent v-if="!isAuthPage" />
-    
-    <router-view />
-    
+
+    <main class="main-content">
+      <router-view />
+    </main>
+
     <FooterComponent v-if="!isAuthPage" />
   </div>
 </template>
@@ -15,18 +16,12 @@ import FooterComponent from "./components/footer/FooterComponent.vue";
 
 export default {
   name: "App",
-  components: {
-    HeaderComponent,
-    FooterComponent,
-  },
+  components: { HeaderComponent, FooterComponent },
   computed: {
     isAuthPage() {
-      // Cek apakah halaman saat ini adalah halaman auth
-      const authRoutes = ['/login', '/register', '/signup'];
-      return authRoutes.includes(this.$route.path);
-    }
-  }
+      // Menggunakan route name untuk keamanan
+      return ["login", "register"].includes(this.$route.name);
+    },
+  },
 };
 </script>
-
-<style></style>

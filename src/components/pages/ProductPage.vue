@@ -40,8 +40,13 @@
             :class="{ active: product.isWishlisted }"
             @click.stop="toggleWishlist(product.id)"
           >
-            <svg viewBox="0 0 24 24" :fill="product.isWishlisted ? 'currentColor' : 'none'">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            <svg
+              viewBox="0 0 24 24"
+              :fill="product.isWishlisted ? 'currentColor' : 'none'"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              />
             </svg>
           </button>
         </div>
@@ -50,7 +55,10 @@
           <p class="product-price">{{ formatPrice(product.price) }}</p>
           <p class="product-name">{{ product.name }}</p>
           <div class="product-meta">
-            <span class="meta-item"><i class="fa-regular fa-heart"></i> {{ product.likes || 0 }}</span>
+            <span class="meta-item"
+              ><i class="fa-regular fa-heart"></i>
+              {{ product.likes || 0 }}</span
+            >
             <span class="meta-item">{{ product.size }}</span>
           </div>
         </div>
@@ -70,7 +78,8 @@
       </div>
       <h2 class="empty-title">Product not found</h2>
       <p class="empty-description">
-        We cannot find what you looking for, try to use other keywords or reset keyword.
+        We cannot find what you looking for, try to use other keywords or reset
+        keyword.
       </p>
       <button class="reset-btn" @click="resetSearch">Reset Keyword</button>
     </div>
@@ -78,45 +87,49 @@
 </template>
 
 <script>
-import { rtdb } from '@/firebase/config'; 
-import { ref as dbRef, get, child, set, push, remove } from 'firebase/database';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { rtdb } from "@/firebase/config";
+import { ref as dbRef, get, child, set, push, remove } from "firebase/database";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default {
-  name: 'ProductsPage',
+  name: "ProductsPage",
   data() {
     return {
-      sortBy: 'default',
+      sortBy: "default",
       products: [],
       isLoading: true,
-      currentUser: null
+      currentUser: null,
     };
   },
   computed: {
     searchQuery() {
-      return (this.$route.query.search || '').trim().toLowerCase();
+      return (this.$route.query.search || "").trim().toLowerCase();
     },
     categoryFilter() {
-      return (this.$route.query.category || '').toLowerCase();
+      return (this.$route.query.category || "").toLowerCase();
     },
     filteredProducts() {
       let result = [...this.products];
       if (this.searchQuery) {
-        result = result.filter(p => p.name.toLowerCase().includes(this.searchQuery));
+        result = result.filter((p) =>
+          p.name.toLowerCase().includes(this.searchQuery)
+        );
       }
       if (this.categoryFilter) {
-        result = result.filter(p => p.category && p.category.toLowerCase() === this.categoryFilter);
+        result = result.filter(
+          (p) => p.category && p.category.toLowerCase() === this.categoryFilter
+        );
       }
-      
-      if (this.sortBy === 'price-low') {
+
+      if (this.sortBy === "price-low") {
         result.sort((a, b) => a.price - b.price);
-      } else if (this.sortBy === 'price-high') {
+      } else if (this.sortBy === "price-high") {
         result.sort((a, b) => b.price - a.price);
-      } else if (this.sortBy === 'newest') {
+      } else if (this.sortBy === "newest") {
         result.reverse();
       }
       return result;
-    }
+    },
   },
   methods: {
     async fetchProducts() {
@@ -124,23 +137,27 @@ export default {
       try {
         let activeWishlists = {};
         if (this.currentUser) {
-          const wishlistSnapshot = await get(child(dbRef(rtdb), `wishlists/${this.currentUser.uid}`));
-          activeWishlists = wishlistSnapshot.exists() ? wishlistSnapshot.val() : {};
+          const wishlistSnapshot = await get(
+            child(dbRef(rtdb), `wishlists/${this.currentUser.uid}`)
+          );
+          activeWishlists = wishlistSnapshot.exists()
+            ? wishlistSnapshot.val()
+            : {};
         }
 
-        const snapshot = await get(child(dbRef(rtdb), 'products'));
+        const snapshot = await get(child(dbRef(rtdb), "products"));
         if (snapshot.exists()) {
           const data = snapshot.val();
-          this.products = Object.keys(data).map(key => {
+          this.products = Object.keys(data).map((key) => {
             const wishlistKey = Object.keys(activeWishlists).find(
-              wKey => activeWishlists[wKey].productId === key
+              (wKey) => activeWishlists[wKey].productId === key
             );
             return {
               id: key,
               ...data[key],
               price: Number(data[key].price),
               isWishlisted: !!wishlistKey,
-              wishlistKey: wishlistKey || null
+              wishlistKey: wishlistKey || null,
             };
           });
         }
@@ -155,7 +172,7 @@ export default {
         alert("Please login to manage your wishlist");
         return;
       }
-      const product = this.products.find(p => p.id === id);
+      const product = this.products.find((p) => p.id === id);
       if (!product) return;
       const userWishlistRef = dbRef(rtdb, `wishlists/${this.currentUser.uid}`);
       try {
@@ -170,7 +187,7 @@ export default {
             name: product.name,
             price: product.price,
             image: product.image,
-            addedAt: new Date().toISOString()
+            addedAt: new Date().toISOString(),
           });
           product.isWishlisted = true;
           product.wishlistKey = newWishRef.key;
@@ -180,14 +197,14 @@ export default {
       }
     },
     formatPrice(price) {
-      return `Rp${Number(price).toLocaleString('id-ID')}`;
+      return `Rp${Number(price).toLocaleString("id-ID")}`;
     },
     handleProductClick(id) {
       this.$router.push(`/products/${id}`);
     },
     resetSearch() {
-      this.$router.push({ path: '/products', query: {} });
-    }
+      this.$router.push({ path: "/products", query: {} });
+    },
   },
   mounted() {
     const auth = getAuth();
@@ -195,7 +212,7 @@ export default {
       this.currentUser = user;
       this.fetchProducts();
     });
-  }
+  },
 };
 </script>
 
@@ -213,10 +230,10 @@ export default {
   align-items: center;
   margin-bottom: 30px;
 }
-.products-title { 
-  font-size: 24px; 
-  font-weight: 800; 
-  text-transform: uppercase; 
+.products-title {
+  font-size: 24px;
+  font-weight: 800;
+  text-transform: uppercase;
   color: #000;
 }
 .sort-select {
@@ -228,7 +245,7 @@ export default {
   cursor: pointer;
 }
 .sort-select:focus {
-  border-color: #C41230;
+  border-color: #c41230;
 }
 
 /* Grid Layout */
@@ -239,8 +256,16 @@ export default {
   align-items: stretch;
 }
 
-@media (max-width: 1200px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 768px) { .products-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1200px) {
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
 /* Product Card */
 .product-card {
@@ -249,7 +274,9 @@ export default {
   cursor: pointer;
   transition: transform 0.2s;
 }
-.product-card:hover { transform: translateY(-8px); }
+.product-card:hover {
+  transform: translateY(-8px);
+}
 
 .product-image-container {
   position: relative;
@@ -278,12 +305,19 @@ export default {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   color: #ccc;
   transition: 0.2s;
 }
-.wishlist-btn.active { color: #C41230; }
-.wishlist-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; }
+.wishlist-btn.active {
+  color: #c41230;
+}
+.wishlist-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
 
 .product-info {
   padding: 12px 0;
@@ -292,7 +326,12 @@ export default {
   flex-grow: 1;
 }
 /* Harga Produk: Vans Red */
-.product-price { font-weight: 800; color: #C41230; margin-bottom: 4px; font-size: 15px; }
+.product-price {
+  font-weight: 800;
+  color: #c41230;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
 .product-name {
   font-size: 14px;
   color: #000;
@@ -315,8 +354,12 @@ export default {
 
 /* SKELETON ANIMATION STYLE */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton-card {
@@ -327,7 +370,8 @@ export default {
   overflow: hidden;
 }
 
-.skeleton-image, .skeleton-text {
+.skeleton-image,
+.skeleton-text {
   background: #eee;
   background: linear-gradient(90deg, #f0f0f0 25%, #fce8e8 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -352,10 +396,23 @@ export default {
   border-radius: 4px;
 }
 
-.skeleton-text.price { width: 60%; height: 18px; }
-.skeleton-text.title { width: 90%; height: 14px; }
-.skeleton-footer { display: flex; justify-content: space-between; margin-top: 4px; }
-.skeleton-text.small { width: 30%; height: 10px; }
+.skeleton-text.price {
+  width: 60%;
+  height: 18px;
+}
+.skeleton-text.title {
+  width: 90%;
+  height: 14px;
+}
+.skeleton-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.skeleton-text.small {
+  width: 30%;
+  height: 10px;
+}
 
 /* EMPTY STATE DESIGN: Vans Red & Black */
 .empty-state {
@@ -390,7 +447,7 @@ export default {
 .bag-body {
   width: 80px;
   height: 70px;
-  background-color: #C41230; /* Vans Red */
+  background-color: #c41230; /* Vans Red */
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -439,7 +496,7 @@ export default {
 }
 
 .reset-btn:hover {
-  background-color: #C41230;
+  background-color: #c41230;
   transform: translateY(-2px);
 }
 </style>

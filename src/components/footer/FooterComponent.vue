@@ -12,10 +12,18 @@
           <li><a href="#">Customs</a></li>
         </ul>
         <div class="social-icons">
-          <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
-          <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="WhatsApp"
+            ><i class="fa-brands fa-whatsapp"></i
+          ></a>
+          <a href="#" aria-label="YouTube"
+            ><i class="fa-brands fa-youtube"></i
+          ></a>
+          <a href="#" aria-label="LinkedIn"
+            ><i class="fa-brands fa-linkedin-in"></i
+          ></a>
+          <a href="#" aria-label="Instagram"
+            ><i class="fa-brands fa-instagram"></i
+          ></a>
         </div>
       </div>
 
@@ -49,7 +57,7 @@
         </ul>
       </div>
     </div>
-    
+
     <div class="footer-bottom">
       <p>© Vans Off The Wall, 2023</p>
     </div>
@@ -58,30 +66,27 @@
 
 <script>
 export default {
-  name: 'FooterComponent'
-}
+  name: "FooterComponent",
+};
 </script>
 
 <style scoped>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+/* Pastikan FontAwesome sudah ter-import di main.js atau index.html */
 
 .vans-footer {
-  /* Berubah dari Teal ke Hitam Vans */
-  background-color: #000000;
-  color: white;
-  padding: 0 0 40px 0; /* Padding atas diatur 0 karena ada checkerboard */
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: var(--vans-black);
+  color: var(--vans-white);
+  padding: 0 0 40px 0;
+  width: 100%;
 }
 
-/* Pola Checkerboard Ikonik Vans */
 .checkerboard-pattern {
   height: 12px;
   width: 100%;
   margin-bottom: 40px;
-  background-image: 
-    linear-gradient(45deg, #fff 25%, transparent 25%), 
-    linear-gradient(-45deg, #fff 25%, transparent 25%), 
-    linear-gradient(45deg, transparent 75%, #fff 75%), 
+  background-image: linear-gradient(45deg, #fff 25%, transparent 25%),
+    linear-gradient(-45deg, #fff 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #fff 75%),
     linear-gradient(-45deg, transparent 75%, #fff 75%);
   background-size: 12px 12px;
   background-position: 0 0, 0 6px, 6px 6px, 6px 0;
@@ -90,6 +95,8 @@ export default {
 }
 
 .footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 40px;
@@ -121,8 +128,7 @@ export default {
 }
 
 .footer-column ul li a:hover {
-  /* Hover menggunakan Vans Red */
-  color: #C41230;
+  color: var(--vans-red);
 }
 
 .social-icons {
@@ -132,14 +138,14 @@ export default {
 }
 
 .social-icons a {
-  color: white;
+  color: var(--vans-white);
   font-size: 20px;
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .social-icons a:hover {
   transform: scale(1.2);
-  color: #C41230; /* Hover Red */
+  color: var(--vans-red);
 }
 
 .footer-bottom {
@@ -155,10 +161,11 @@ export default {
 
 @media (max-width: 768px) {
   .footer-container {
-    padding: 0 20px;
+    padding: 0 24px;
+    gap: 30px;
   }
   .footer-bottom {
-    margin: 40px 20px 0 20px;
+    margin: 40px 24px 0 24px;
   }
 }
 </style>
