@@ -45,4 +45,53 @@ export default {
 .modal-icon {
   margin-bottom: 30px;
 }
+.vans-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); 
+  
+  display: flex;
+  justify-content: center; 
+  align-items: center;     
+  z-index: 9999;           
+}
+
+.vans-modal-card {
+  background: white;
+  max-width: 500px;
+  width: 90%;             
+  text-align: center;      
+  border-radius: 8px;     
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-icon {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.vans-modal-title {
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.vans-modal-desc {
+  margin-bottom: 30px;
+  color: #555;
+}
+
+.btn-vans-primary {
+  width: 100%;
+  padding: 12px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
 </style>
+
